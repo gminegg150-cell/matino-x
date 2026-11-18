@@ -43,7 +43,88 @@ final class PatchProjectStore: ObservableObject {
             Self.importBundledPackagesIfNeeded()
             let loadedItems = PatchProjectLibrary.load()
             await self?.finishInitialLoad(loadedItems)
+            await Self.syncPackagesFromGitHub()
+            await self?.reload()
         }
+    }
+
+    /// MATINO X: switch for the live repository sync. When enabled the app
+    /// mirrors BundledFiles/ from GitHub on launch, so files added or removed
+    /// through the site show up in Installed without reinstalling the IPA.
+    private static let remoteSyncEnabled = true
+    private static let remoteRepo = "tff68484-lab/matino-x"
+    private static let remoteDirectory = "BundledFiles"
+    private static let remoteTrackedKey = "patch.remote_bundled_files"
+
+    private struct RemotePackage: Decodable {
+        let name: String
+        let type: String
+        let size: Int
+        let downloadURL: URL?
+
+        enum CodingKeys: String, CodingKey {
+            case name, type, size
+            case downloadURL = "download_url"
+        }
+    }
+
+    private nonisolated static func remotePackageList() async -> [RemotePackage]? {
+        guard remoteSyncEnabled,
+              let url = URL(string: "https://api.github.com/repos/\(remoteRepo)/contents/\(remoteDirectory)") else { return nil }
+        var request = URLRequest(url: url)
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 15
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse, http.statusCode == 200 else { return nil }
+        return try? JSONDecoder().decode([RemotePackage].self, from: data)
+    }
+
+    /// Downloads every .3105 currently held in the repository and drops the
+    /// ones the repository no longer holds. Packages that ship inside the app
+    /// bundle win over the remote copy, and packages the user imported by hand
+    /// are never tracked here, so they are never deleted.
+    private nonisolated static func syncPackagesFromGitHub() async {
+        guard remoteSyncEnabled else { return }
+        guard let listing = await remotePackageList() else { return }
+        guard let root = try? PatchProjectLibrary.packageRootURL() else { return }
+
+        let fm = FileManager.default
+        let defaults = UserDefaults.standard
+        let previouslyTracked = Set(defaults.stringArray(forKey: remoteTrackedKey) ?? [])
+        let resources = Bundle.main.resourceURL ?? Bundle.main.bundleURL
+        let bundled = Set(((try? fm.contentsOfDirectory(atPath: resources.path)) ?? [])
+            .filter { $0.lowercased().hasSuffix(".3105") })
+
+        var current = Set<String>()
+        for package in listing
+        where package.type == "file", package.name.lowercased().hasSuffix(".3105") {
+            current.insert(package.name)
+            // The bundle already carries this file: the local sync owns it.
+            guard !bundled.contains(package.name) else { continue }
+            guard let source = package.downloadURL else { continue }
+
+            let destination = root.appendingPathComponent(package.name)
+            let localSize = (try? destination.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? -1
+            guard !fm.fileExists(atPath: destination.path) || localSize != package.size else { continue }
+
+            guard let (data, response) = try? await URLSession.shared.data(from: source),
+                  let http = response as? HTTPURLResponse, http.statusCode == 200,
+                  data.count == package.size else { continue }
+
+            try? fm.removeItem(at: destination)
+            try? data.write(to: destination, options: .atomic)
+        }
+
+        // Mirror deletions: anything we synced before that the repository (and
+        // the app bundle) no longer holds is removed from Installed.
+        for name in previouslyTracked.subtracting(current).subtracting(bundled) {
+            let stale = root.appendingPathComponent(name)
+            if fm.fileExists(atPath: stale.path) {
+                try? fm.removeItem(at: stale)
+            }
+        }
+
+        defaults.set(Array(current), forKey: remoteTrackedKey)
     }
 
     /// MATINO X: files placed in BundledFiles/ end up in the app bundle.
