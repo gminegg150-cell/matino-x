@@ -56,11 +56,16 @@ final class PatchProjectStore: ObservableObject {
         let names = (try? fm.contentsOfDirectory(atPath: resources.path)) ?? []
         guard let root = try? PatchProjectLibrary.packageRootURL(fileManager: fm) else { return }
 
+        let defaults = UserDefaults.standard
+        let trackedKey = "patch.imported_bundled_files"
+        let previouslyTracked = Set(defaults.stringArray(forKey: trackedKey) ?? [])
+        let bundled = Set(names.filter { $0.lowercased().hasSuffix(".3105") })
+
         func modificationDate(_ url: URL) -> Date {
             (try? fm.attributesOfItem(atPath: url.path)[.modificationDate] as? Date) ?? .distantPast
         }
 
-        for name in names where name.lowercased().hasSuffix(".3105") {
+        for name in bundled {
             let source = resources.appendingPathComponent(name)
             guard fm.fileExists(atPath: source.path) else { continue }
             let destination = root.appendingPathComponent(name)
@@ -73,6 +78,18 @@ final class PatchProjectStore: ObservableObject {
                 try? fm.copyItem(at: source, to: destination)
             }
         }
+
+        // Drop copies that we imported earlier but that are no longer bundled.
+        // Only files we tracked as bundle-sourced are removed, so packages the
+        // user imported by hand are left alone.
+        for name in previouslyTracked.subtracting(bundled) {
+            let stale = root.appendingPathComponent(name)
+            if fm.fileExists(atPath: stale.path) {
+                try? fm.removeItem(at: stale)
+            }
+        }
+
+        defaults.set(Array(bundled), forKey: trackedKey)
     }
 
     func reload() {
