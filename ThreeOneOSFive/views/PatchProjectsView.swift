@@ -19,6 +19,8 @@ private enum InstalledScreenLayout {
     static let showsNewPatchButton = false
     /// The "Utilities / Cleaner" block at the bottom of the list.
     static let showsUtilitiesSection = false
+    /// The "Nothing Installed" empty-state card.
+    static let showsEmptyState = false
 }
 
 struct PatchProjectsView: View {
@@ -98,6 +100,12 @@ struct PatchProjectsView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                HStack {
+                    Spacer(minLength: 0)
+                    settingsGearButton
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
                 AppSearchField(
                     text: $searchText,
                     prompt: language.text("installed.search"),
@@ -109,8 +117,13 @@ struct PatchProjectsView: View {
                         loadingState
                             .listRowSeparator(.hidden)
                     } else if !hasLocalContent {
-                        emptyState
-                            .listRowSeparator(.hidden)
+                        if InstalledScreenLayout.showsEmptyState {
+                            emptyState
+                                .listRowSeparator(.hidden)
+                        } else {
+                            EmptyView()
+                                .listRowSeparator(.hidden)
+                        }
                     } else if !hasSearchResults && !store.isBusy {
                         searchEmptyState
                             .listRowSeparator(.hidden)
@@ -163,13 +176,6 @@ struct PatchProjectsView: View {
             }
             .navigationTitle(language.text("tab.installed"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                AppUtilityToolbar(
-                    language: language,
-                    onOpenSettings: onOpenSettings,
-                    onOpenLogs: onOpenLogs
-                )
-            }
             .sheet(isPresented: $showImporter) {
                 FileDocumentPicker(
                     allowedContentTypes: PatchPackagePickerPolicy.allowedContentTypes,
@@ -273,6 +279,34 @@ struct PatchProjectsView: View {
                 consumeExternalImport()
             }
         }
+    }
+
+    private var settingsGearButton: some View {
+        Menu {
+            Button(action: onOpenSettings) {
+                Label(
+                    language.text("settings.title"),
+                    systemImage: "gearshape"
+                )
+            }
+            Button(action: onOpenLogs) {
+                Label(
+                    language.text("accessibility.open_logs"),
+                    systemImage: "apple.terminal"
+                )
+            }
+        } label: {
+            Image(systemName: "gearshape")
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(AppTheme.accent)
+                .frame(width: 32, height: 32)
+                .background(AppTheme.consoleBackground, in: Circle())
+                .overlay {
+                    Circle()
+                        .strokeBorder(AppTheme.cardBorder, lineWidth: 1)
+                }
+        }
+        .accessibilityLabel(language.text("accessibility.open_settings"))
     }
 
     private func consumeExternalImport() {
