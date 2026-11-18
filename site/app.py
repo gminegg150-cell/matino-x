@@ -60,11 +60,33 @@ def safe_name(name: str) -> str:
 
 def latest_release() -> dict | None:
     import json
+    import subprocess
     import urllib.request
 
+    repo = REPO_SLUG
+
+    # Prefer the authenticated gh CLI (works for private repos too).
+    try:
+        result = subprocess.run(
+            [
+                "gh", "api", f"repos/{repo}/releases/latest",
+                "--jq", "{tag:.tag_name, url:(.assets[]|select(.name|endswith(\".ipa\"))|.browser_download_url)}",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=20,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            data = json.loads(result.stdout.strip().splitlines()[0])
+            if data.get("url"):
+                return {"tag": data.get("tag", ""), "url": data["url"]}
+    except Exception:
+        pass
+
+    # Fallback: public REST API.
     try:
         req = urllib.request.Request(
-            f"https://api.github.com/repos/{REPO_SLUG}/releases/latest",
+            f"https://api.github.com/repos/{repo}/releases/latest",
             headers={"User-Agent": "matino-x-file-site"},
         )
         with urllib.request.urlopen(req, timeout=10) as response:

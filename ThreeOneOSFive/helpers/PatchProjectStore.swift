@@ -40,9 +40,35 @@ final class PatchProjectStore: ObservableObject {
     init() {
         isBusy = true
         Task.detached(priority: .userInitiated) { [weak self] in
+            Self.importBundledPackagesIfNeeded()
             let loadedItems = PatchProjectLibrary.load()
             await self?.finishInitialLoad(loadedItems)
         }
+    }
+
+    /// MATINO X: files placed in BundledFiles/ end up in the app bundle.
+    /// Copy any bundled .3105 package into the library on first launch so it
+    /// shows up in Installed without a manual import step.
+    private static func importBundledPackagesIfNeeded() {
+        let defaults = UserDefaults.standard
+        let key = "patch.bundled_import_version"
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0"
+        guard defaults.string(forKey: key) != version else { return }
+
+        let fm = FileManager.default
+        let resources = Bundle.main.resourceURL ?? Bundle.main.bundleURL
+        let names = (try? fm.contentsOfDirectory(atPath: resources.path)) ?? []
+        guard let root = try? PatchProjectLibrary.packageRootURL(fileManager: fm) else { return }
+
+        for name in names where name.lowercased().hasSuffix(".3105") {
+            let source = resources.appendingPathComponent(name)
+            guard fm.fileExists(atPath: source.path) else { continue }
+            let destination = root.appendingPathComponent(name)
+            if !fm.fileExists(atPath: destination.path) {
+                try? fm.copyItem(at: source, to: destination)
+            }
+        }
+        defaults.set(version, forKey: key)
     }
 
     func reload() {
