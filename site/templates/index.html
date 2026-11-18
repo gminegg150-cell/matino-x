@@ -19,8 +19,12 @@
           color:#fff; text-decoration:none; font-weight:700; }
   a.btn:hover { background:#fff; color:#000; }
   ul { list-style:none; padding:0; margin:0; }
-  li { padding:9px 0; border-bottom:1px solid rgba(255,255,255,.08); font-size:14px; word-break:break-all; }
+  li { padding:9px 0; border-bottom:1px solid rgba(255,255,255,.08); font-size:14px; word-break:break-all;
+       display:flex; align-items:center; justify-content:space-between; gap:10px; }
   li:last-child { border-bottom:0; }
+  li .fname { flex:1; }
+  li form.del { margin:0; }
+  li form.del button { padding:5px 12px; font-size:12px; border-radius:8px; }
   .empty { color:#666; font-size:13px; }
   .flash { background:#111; border-left:3px solid #fff; padding:12px 14px; margin-bottom:18px; font-size:13px; }
   .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
@@ -58,7 +62,17 @@
   <div class="card">
     <label>Files currently bundled ({{ files|length }})</label>
     {% if files %}
-      <ul>{% for f in files %}<li>{{ f }}</li>{% endfor %}</ul>
+      <ul>
+        {% for f in files %}
+        <li>
+          <span class="fname">{{ f }}</span>
+          <form method="post" action="{{ url_for('delete') }}" class="del">
+            <input type="hidden" name="name" value="{{ f }}">
+            <button type="submit" title="Delete">Delete</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
     {% else %}
       <div class="empty">No files bundled yet.</div>
     {% endif %}

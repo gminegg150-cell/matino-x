@@ -167,6 +167,37 @@ def upload():
     return redirect(url_for("index"))
 
 
+@app.route("/delete", methods=["POST"])
+def delete():
+    if not logged_in():
+        return redirect(url_for("index"))
+
+    name = safe_name(request.form.get("name", ""))
+    target = DROP_DIR / name
+    if not target.is_file():
+        flash(f"{name}: not found.")
+        return redirect(url_for("index"))
+
+    try:
+        target.unlink()
+        subprocess.run(["git", "add", "-A", "--", "BundledFiles"], cwd=REPO, check=True)
+        subprocess.run(
+            ["git", "commit", "-m", f"Remove bundled file: {name}"], cwd=REPO, check=True
+        )
+        push = subprocess.run(
+            ["git", "push"], cwd=REPO, capture_output=True, text=True, timeout=120
+        )
+        if push.returncode == 0:
+            flash(f"{name} deleted. GitHub Actions is rebuilding the IPA (~1 min).")
+        else:
+            flash(f"{name} removed locally but push failed: {push.stderr[-500:]}")
+    except Exception as exc:
+        flash(f"Delete error: {exc}")
+
+    time.sleep(0.2)
+    return redirect(url_for("index"))
+
+
 @app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
