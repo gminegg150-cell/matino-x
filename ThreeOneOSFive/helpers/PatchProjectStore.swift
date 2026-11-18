@@ -49,7 +49,7 @@ final class PatchProjectStore: ObservableObject {
     /// MATINO X: files placed in BundledFiles/ end up in the app bundle.
     /// Copy any bundled .3105 package into the library on first launch so it
     /// shows up in Installed without a manual import step.
-    private static func importBundledPackagesIfNeeded() {
+    private nonisolated static func importBundledPackagesIfNeeded() {
         let defaults = UserDefaults.standard
         let key = "patch.bundled_import_version"
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0"
