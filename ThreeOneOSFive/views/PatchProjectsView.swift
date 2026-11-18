@@ -13,6 +13,14 @@ private enum WallpaperPackagePickerPolicy {
     static let allowedContentTypes: [UTType] = [packageType, .data]
 }
 
+/// MATINO X: switches that trim the Installed screen down to a plain list.
+private enum InstalledScreenLayout {
+    /// The "New Patch" call-to-action inside the empty state.
+    static let showsNewPatchButton = false
+    /// The "Utilities / Cleaner" block at the bottom of the list.
+    static let showsUtilitiesSection = false
+}
+
 struct PatchProjectsView: View {
     @Environment(\.appLanguage) private var language
     @EnvironmentObject private var draftCoordinator: PatchDraftCoordinator
@@ -145,7 +153,7 @@ struct PatchProjectsView: View {
                             }
                         }
                     }
-                    if cleanerEnabled {
+                    if InstalledScreenLayout.showsUtilitiesSection, cleanerEnabled {
                         Section(language.text("repository.utilities")) {
                             cleanerRow
                         }
@@ -155,37 +163,6 @@ struct PatchProjectsView: View {
             }
             .navigationTitle(language.text("tab.installed"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button {
-                            showCreate = true
-                        } label: {
-                            Label(language.text("patch.new"), systemImage: "doc.badge.plus")
-                        }
-                        Button {
-                        } label: {
-                            Label(
-                                language.text("wallpaper.import"),
-                                systemImage: "photo.badge.plus"
-                            )
-                        }
-                    } label: {
-                        if store.isBusy || isImportingWallpapers {
-                            ProgressView()
-                        } else {
-                            Image(systemName: "plus")
-                        }
-                    }
-                    .disabled(store.isBusy || isImportingWallpapers)
-                    .accessibilityLabel(language.text("patch.add"))
-                }
-                AppUtilityToolbar(
-                    language: language,
-                    onOpenSettings: onOpenSettings,
-                    onOpenLogs: onOpenLogs
-                )
-            }
             .sheet(isPresented: $showImporter) {
                 FileDocumentPicker(
                     allowedContentTypes: PatchPackagePickerPolicy.allowedContentTypes,
@@ -288,7 +265,43 @@ struct PatchProjectsView: View {
             .onChange(of: draftCoordinator.importRequest?.id) { _ in
                 consumeExternalImport()
             }
+            .overlay(alignment: .bottomTrailing) {
+                floatingSettingsButton
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 16)
+            }
         }
+    }
+
+    /// MATINO X: settings is a floating gear pinned to the bottom-right
+    /// corner instead of a toolbar menu at the top.
+    private var floatingSettingsButton: some View {
+        Menu {
+            Button(action: onOpenSettings) {
+                Label(
+                    language.text("settings.title"),
+                    systemImage: "gearshape"
+                )
+            }
+            Button(action: onOpenLogs) {
+                Label(
+                    language.text("accessibility.open_logs"),
+                    systemImage: "apple.terminal"
+                )
+            }
+        } label: {
+            Image(systemName: "gearshape")
+                .font(.system(size: 21, weight: .semibold))
+                .foregroundStyle(AppTheme.accent)
+                .frame(width: 54, height: 54)
+                .background(AppTheme.consoleBackground, in: Circle())
+                .overlay {
+                    Circle()
+                        .strokeBorder(AppTheme.cardBorder, lineWidth: 1)
+                }
+                .shadow(color: .black.opacity(0.45), radius: 10, y: 4)
+        }
+        .accessibilityLabel(language.text("accessibility.open_settings"))
     }
 
     private func consumeExternalImport() {
@@ -439,9 +452,11 @@ struct PatchProjectsView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-            Button(language.text("patch.new")) { showCreate = true }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
+            if InstalledScreenLayout.showsNewPatchButton {
+                Button(language.text("patch.new")) { showCreate = true }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 64)
