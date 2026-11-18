@@ -32,7 +32,7 @@ enum AppSection: Int, CaseIterable, Identifiable {
     var categoryTabTitle: String? {
         switch self {
         case .aim: return "AIM"
-        case .hologram: return "HOLOGRAM P"
+        case .hologram: return "HOLOGRAM"
         case .skin: return "SKIN"
         default: return nil
         }
@@ -80,10 +80,13 @@ struct FeatureVisibility: Equatable {
 
     func isVisible(_ section: AppSection) -> Bool {
         switch section {
-        case .installed:
-            return true
         case .aim, .hologram, .skin:
             return categoryTabsEnabled
+        case .installed:
+            // MATINO X: Installed is replaced by the three category tabs.
+            // It stays available only as the fallback when category tabs are
+            // disabled via the flag, so the list is never stranded empty.
+            return !categoryTabsEnabled
         case .files:
             return developerModeEnabled
         case .home, .new, .sources, .search:
@@ -97,7 +100,7 @@ struct AppTabNavigationState: Equatable {
     private(set) var filesTabs: FilesTabSession
 
     init(
-        selectedTab: Int = AppSection.installed.rawValue,
+        selectedTab: Int = AppSection.aim.rawValue,
         filesNavigationPath: [FileBrowserDestination] = []
     ) {
         self.selectedTab = selectedTab
@@ -125,7 +128,9 @@ struct AppTabNavigationState: Equatable {
     mutating func reconcileSelection(with visibility: FeatureVisibility) {
         guard let selectedSection = AppSection(rawValue: selectedTab),
               visibility.isVisible(selectedSection) else {
-            selectedTab = AppSection.installed.rawValue
+            selectedTab = visibility.isVisible(.aim)
+                ? AppSection.aim.rawValue
+                : AppSection.installed.rawValue
             return
         }
     }

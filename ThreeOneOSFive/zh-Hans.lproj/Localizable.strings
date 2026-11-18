@@ -493,7 +493,7 @@
 "tab.sources" = "软件源";
 "tab.installed" = "已安装";
 "tab.aim" = "AIM";
-"tab.hologram" = "HOLOGRAM P";
+"tab.hologram" = "HOLOGRAM";
 "tab.skin" = "SKIN";
 "installed.search" = "搜索补丁或壁纸";
 "installed.empty_title" = "尚未安装内容";
