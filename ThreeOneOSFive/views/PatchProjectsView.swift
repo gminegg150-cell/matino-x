@@ -21,6 +21,8 @@ private enum InstalledScreenLayout {
     static let showsUtilitiesSection = false
     /// The "Nothing Installed" empty-state card.
     static let showsEmptyState = false
+    /// The search field above the list.
+    static let showsSearchField = false
 }
 
 struct PatchProjectsView: View {
@@ -106,12 +108,14 @@ struct PatchProjectsView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                AppSearchField(
-                    text: $searchText,
-                    prompt: language.text("installed.search"),
-                    clearLabel: language.text("common.clear")
-                )
-                Divider()
+                if InstalledScreenLayout.showsSearchField {
+                    AppSearchField(
+                        text: $searchText,
+                        prompt: language.text("installed.search"),
+                        clearLabel: language.text("common.clear")
+                    )
+                    Divider()
+                }
                 List {
                     if !hasLocalContent && (store.isBusy || isImportingWallpapers) {
                         loadingState
