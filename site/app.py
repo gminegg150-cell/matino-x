@@ -8,6 +8,7 @@ Protected by a single password stored in .env (SITE_PASSWORD).
 """
 from __future__ import annotations
 
+import base64
 import os
 import secrets
 import subprocess
@@ -20,7 +21,27 @@ SITE = Path(__file__).resolve().parent
 REPO = SITE.parent
 DROP_DIR = REPO / "BundledFiles"
 ENV_FILE = REPO / ".env"
-REPO_SLUG = "tff68484-lab/matino-x"
+REPO_SLUG = "gminegg150-cell/matino-x"
+# MATINO X: git push must target the new account remote, not the stale origin.
+PUSH_REMOTE = "new"
+
+
+def git_push_command() -> list[str]:
+    """git push to the new account, authenticating with GH_TOKEN when present.
+
+    The machine's credential helper is bound to the old account, so a plain
+    `git push` gets a 403. An explicit Authorization header keeps the site
+    independent of the desktop credential helper.
+    """
+    cmd = ["git"]
+    token = os.environ.get("GH_TOKEN", "").strip()
+    if token:
+        basic = base64.b64encode(
+            f"x-access-token:{token}".encode("utf-8")
+        ).decode("ascii")
+        cmd += ["-c", f"http.extraheader=AUTHORIZATION: basic {basic}"]
+    cmd += ["push", PUSH_REMOTE, "main:main"]
+    return cmd
 
 
 def load_env_file() -> None:
@@ -164,7 +185,7 @@ def upload():
                 ["git", "commit", "-m", f"Bundle file: {name}"], cwd=REPO, check=True
             )
             push = subprocess.run(
-                ["git", "push"], cwd=REPO, capture_output=True, text=True, timeout=120
+                git_push_command(), cwd=REPO, capture_output=True, text=True, timeout=120
             )
             if push.returncode == 0:
                 flash(f"{name} uploaded. GitHub Actions is rebuilding the IPA (~1 min).")
