@@ -36,6 +36,11 @@ final class PatchProjectStore: ObservableObject {
     }
 
     private var pendingUnlock: PendingUnlock?
+    private var lastRepositorySync: Date?
+
+    /// MATINO X: minimum gap between two repository syncs, so returning to the
+    /// foreground does not hammer the GitHub API.
+    private static let repositorySyncInterval: TimeInterval = 45
 
     init() {
         isBusy = true
@@ -43,6 +48,28 @@ final class PatchProjectStore: ObservableObject {
             Self.importBundledPackagesIfNeeded()
             let loadedItems = PatchProjectLibrary.load()
             await self?.finishInitialLoad(loadedItems)
+            await Self.syncPackagesFromGitHub()
+            await self?.markRepositorySynced()
+            await self?.reload()
+        }
+    }
+
+    private func markRepositorySynced() {
+        lastRepositorySync = Date()
+    }
+
+    /// MATINO X: re-runs the repository sync whenever the app comes back to
+    /// the foreground. A file removed through the site disappears from
+    /// Installed, and a file uploaded through the site appears, without
+    /// restarting the app. Mirrors how VESPER keeps its list in step with its
+    /// server, implemented here on top of the public GitHub repository.
+    func refreshFromRepository() {
+        if let last = lastRepositorySync,
+           Date().timeIntervalSince(last) < Self.repositorySyncInterval {
+            return
+        }
+        lastRepositorySync = Date()
+        Task.detached(priority: .utility) { [weak self] in
             await Self.syncPackagesFromGitHub()
             await self?.reload()
         }

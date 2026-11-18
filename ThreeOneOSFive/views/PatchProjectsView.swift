@@ -27,6 +27,7 @@ private enum InstalledScreenLayout {
 
 struct PatchProjectsView: View {
     @Environment(\.appLanguage) private var language
+    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var draftCoordinator: PatchDraftCoordinator
     @EnvironmentObject private var store: PatchProjectStore
     @AppStorage(FeatureVisibility.cleanerStorageKey) private var cleanerEnabled = true
@@ -281,6 +282,13 @@ struct PatchProjectsView: View {
             }
             .onChange(of: draftCoordinator.importRequest?.id) { _ in
                 consumeExternalImport()
+            }
+            .onChange(of: scenePhase) { phase in
+                // MATINO X: coming back to the app re-checks the repository,
+                // so site-side additions and deletions show up immediately.
+                if phase == .active {
+                    store.refreshFromRepository()
+                }
             }
         }
     }
