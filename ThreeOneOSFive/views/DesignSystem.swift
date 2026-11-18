@@ -1,69 +1,11 @@
 import SwiftUI
 
 enum AppTheme {
-    static let redKey = "appAccentRed"
-    static let greenKey = "appAccentGreen"
-    static let blueKey = "appAccentBlue"
-    static let rainbowKey = "appRainbowEnabled"
-    static let defaultChannel = 255.0
-    static var rainbowHue = 0.0
-
-    private static func channel(_ key: String, fallback: Double) -> Double {
-        let stored = UserDefaults.standard.object(forKey: key) as? Double ?? fallback
-        return min(255, max(0, stored)) / 255
-    }
-
-    private static var accentRGB: (Double, Double, Double) {
-        if UserDefaults.standard.bool(forKey: rainbowKey) {
-            // Cycle through the hue wheel over 7 seconds, like the original.
-            let position = (rainbowHue.truncatingRemainder(dividingBy: 1)) * 6
-            let sector = Int(position) % 6
-            let fraction = position - floor(position)
-            let inverse = 1 - fraction
-            switch sector {
-            case 0: return (1, fraction, 0)
-            case 1: return (inverse, 1, 0)
-            case 2: return (0, 1, fraction)
-            case 3: return (0, inverse, 1)
-            case 4: return (fraction, 0, 1)
-            default: return (1, 0, inverse)
-            }
-        }
-        return (
-            channel(redKey, fallback: defaultChannel),
-            channel(greenKey, fallback: defaultChannel),
-            channel(blueKey, fallback: defaultChannel)
-        )
-    }
-
-    static var accent: Color {
-        let rgb = accentRGB
-        return Color(red: rgb.0, green: rgb.1, blue: rgb.2)
-    }
-
-    static var secondaryAccent: Color {
-        let rgb = accentRGB
-        return Color(
-            red: min(1, rgb.0 * 0.78 + 0.22),
-            green: min(1, rgb.1 * 0.78 + 0.22),
-            blue: min(1, rgb.2 * 0.78 + 0.22)
-        )
-    }
-
-    static var pageBackground: Color {
-        let rgb = accentRGB
-        return Color(red: rgb.0 * 0.012, green: rgb.1 * 0.012, blue: rgb.2 * 0.012)
-    }
-
-    static var consoleBackground: Color {
-        let rgb = accentRGB
-        return Color(red: rgb.0 * 0.025, green: rgb.1 * 0.025, blue: rgb.2 * 0.025)
-    }
-
-    static var referenceCard: Color {
-        let rgb = accentRGB
-        return Color(red: rgb.0 * 0.07, green: rgb.1 * 0.07, blue: rgb.2 * 0.07)
-    }
+    static let accent = Color.white
+    static let pageBackground = Color.black
+    static let consoleBackground = Color(white: 0.045)
+    static let referenceCard = Color(white: 0.055)
+    static let cardBorder = Color.white.opacity(0.18)
 
     static let pageInset: CGFloat = 16
     static let rowIconSize: CGFloat = 17
@@ -86,7 +28,7 @@ struct AppCardBorder: View {
             style: .continuous
         )
         .strokeBorder(
-            AppTheme.accent.opacity(0.35),
+            AppTheme.cardBorder,
             lineWidth: 0.5
         )
         .accessibilityHidden(true)
@@ -170,7 +112,7 @@ struct AppLogo: View {
                     .font(.title2.weight(.semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(AppTheme.accent)
+                    .background(AppTheme.pageBackground)
             }
         }
         .frame(width: size, height: size)

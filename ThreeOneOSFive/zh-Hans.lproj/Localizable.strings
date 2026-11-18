@@ -668,8 +668,7 @@
 "wallpaper.package_details" = "软件包详情";
 "wallpaper.package_files" = "%lld 个文件";
 
-"settings.appearance" = "外观";
-"settings.accent_color" = "强调色";
-"settings.reset_color" = "重置颜色";
-"settings.rainbow" = "彩虹 RGB";
-"settings.rainbow_active" = "彩虹颜色已启用";
+
+"home.brand_info" = "MATINO X • 官方信息";
+"home.select_hint" = "选择软件包";
+"common.open" = "打开";

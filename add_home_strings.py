@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append the appearance settings keys to each Localizable.strings file."""
+"""Add the home screen design keys to each Localizable.strings file."""
 from __future__ import annotations
 
 import io
@@ -9,25 +9,19 @@ ROOT = Path(__file__).resolve().parent / "ThreeOneOSFive"
 
 ENTRIES: dict[str, list[tuple[str, str]]] = {
     "en": [
-        ("settings.appearance", "Appearance"),
-        ("settings.accent_color", "Accent color"),
-        ("settings.reset_color", "Reset color"),
-        ("settings.rainbow", "Rainbow RGB"),
-        ("settings.rainbow_active", "Rainbow colors are active"),
+        ("home.brand_info", "MATINO X \u2022 Official info"),
+        ("home.select_hint", "Select a package"),
+        ("common.open", "Open"),
     ],
     "vi": [
-        ("settings.appearance", "Giao diện"),
-        ("settings.accent_color", "Màu nhấn"),
-        ("settings.reset_color", "Đặt lại màu"),
-        ("settings.rainbow", "RGB cầu vồng"),
-        ("settings.rainbow_active", "Màu cầu vồng đang bật"),
+        ("home.brand_info", "MATINO X \u2022 Th\u00f4ng tin ch\u00ednh th\u1ee9c"),
+        ("home.select_hint", "Ch\u1ecdn g\u00f3i"),
+        ("common.open", "M\u1edf"),
     ],
     "zh-Hans": [
-        ("settings.appearance", "外观"),
-        ("settings.accent_color", "强调色"),
-        ("settings.reset_color", "重置颜色"),
-        ("settings.rainbow", "彩虹 RGB"),
-        ("settings.rainbow_active", "彩虹颜色已启用"),
+        ("home.brand_info", "MATINO X \u2022 \u5b98\u65b9\u4fe1\u606f"),
+        ("home.select_hint", "\u9009\u62e9\u8f6f\u4ef6\u5305"),
+        ("common.open", "\u6253\u5f00"),
     ],
 }
 

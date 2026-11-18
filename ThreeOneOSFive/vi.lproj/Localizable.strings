@@ -668,8 +668,7 @@
 "wallpaper.package_details" = "Chi tiết gói";
 "wallpaper.package_files" = "%lld tệp";
 
-"settings.appearance" = "Giao diện";
-"settings.accent_color" = "Màu nhấn";
-"settings.reset_color" = "Đặt lại màu";
-"settings.rainbow" = "RGB cầu vồng";
-"settings.rainbow_active" = "Màu cầu vồng đang bật";
+
+"home.brand_info" = "MATINO X • Thông tin chính thức";
+"home.select_hint" = "Chọn gói";
+"common.open" = "Mở";

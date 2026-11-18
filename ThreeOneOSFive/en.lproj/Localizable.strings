@@ -668,8 +668,7 @@
 "wallpaper.package_details" = "Package Details";
 "wallpaper.package_files" = "%lld files";
 
-"settings.appearance" = "Appearance";
-"settings.accent_color" = "Accent color";
-"settings.reset_color" = "Reset color";
-"settings.rainbow" = "Rainbow RGB";
-"settings.rainbow_active" = "Rainbow colors are active";
+
+"home.brand_info" = "MATINO X • Official info";
+"home.select_hint" = "Select a package";
+"common.open" = "Open";

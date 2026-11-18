@@ -9,11 +9,9 @@ struct ContentView: View {
     @EnvironmentObject private var repositoryStore: PackageRepositoryStore
     @AppStorage(FeatureVisibility.developerModeStorageKey)
     private var developerModeEnabled = false
-    @AppStorage(AppTheme.rainbowKey) private var rainbowEnabled = false
     @State private var tabNavigation: AppTabNavigationState
     @State private var showSettings = false
     @State private var showLogs = false
-    @State private var rainbowTick = 0
 
     init() {
 #if targetEnvironment(simulator)
@@ -53,11 +51,6 @@ struct ContentView: View {
         }
         .tint(AppTheme.accent)
         .imageScale(.small)
-        .onReceive(Timer.publish(every: 0.08, on: .main, in: .common).autoconnect()) { date in
-            guard rainbowEnabled else { return }
-            AppTheme.rainbowHue = date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 7) / 7
-            rainbowTick &+= 1
-        }
         .onChange(of: patchDraftCoordinator.request?.id) { requestID in
             if requestID != nil { tabNavigation.select(AppSection.installed.rawValue) }
         }
