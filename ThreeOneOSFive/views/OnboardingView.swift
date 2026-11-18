@@ -464,7 +464,12 @@ enum OnboardingStore {
         UserDefaults.standard.string(forKey: completedFingerprintKey)
     }
 
+    /// MATINO X: the 4-step onboarding tour is disabled — the app opens
+    /// directly on the main screen. Set to `false` to restore it.
+    private static let onboardingDisabled = true
+
     static func shouldShow() -> Bool {
+        if onboardingDisabled { return false }
 #if targetEnvironment(simulator)
         if ProcessInfo.processInfo.arguments.contains("--skip-onboarding") { return false }
         if ProcessInfo.processInfo.arguments.contains("--reset-onboarding") { return true }
