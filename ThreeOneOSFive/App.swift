@@ -12,6 +12,7 @@ struct ThreeOneOSFiveApp: App {
     @State private var showOnboarding = OnboardingStore.shouldShow()
     @State private var showAttribution = false
     @State private var updateOffer: AppUpdateChecker.Offer?
+    @StateObject private var license = BaypassLicense.shared
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -42,10 +43,10 @@ struct ThreeOneOSFiveApp: App {
                     .environmentObject(repositoryStore)
                     .environment(\.appLanguage, language)
                     .environment(\.locale, language.locale)
-                    .opacity(showOnboarding ? 0 : 1)
-                    .allowsHitTesting(!showOnboarding)
+                    .opacity(showOnboarding || !license.isActivated ? 0 : 1)
+                    .allowsHitTesting(!showOnboarding && license.isActivated)
 
-                if showOnboarding {
+                if showOnboarding && license.isActivated {
                     OnboardingView {
                         OnboardingStore.markCompleted()
                         withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.24)) {
@@ -63,8 +64,13 @@ struct ThreeOneOSFiveApp: App {
                     )
                     .zIndex(1)
                 }
+
+                if !license.isActivated {
+                    BaypassActivationView()
+                        .zIndex(2)
+                }
             }
-            .displayIdentityAttribution(isPresented: $showAttribution, enabled: !showOnboarding)
+            .displayIdentityAttribution(isPresented: $showAttribution, enabled: !showOnboarding && license.isActivated)
             .sheet(isPresented: $showAttribution) {
                 DisplayAttributionSheet()
             }
@@ -81,13 +87,14 @@ struct ThreeOneOSFiveApp: App {
                 )
             }
             .onAppear {
-                if !showOnboarding {
+                license.revalidateStoredKey()
+                if !showOnboarding && license.isActivated {
                     appState.detectSupport()
                     checkForUpdate()
                 }
             }
             .onChange(of: scenePhase) { phase in
-                guard phase == .active, !showOnboarding else { return }
+                guard phase == .active, !showOnboarding, license.isActivated else { return }
                 appState.detectSupport()
             }
             .onOpenURL { url in
