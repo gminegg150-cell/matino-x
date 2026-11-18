@@ -11,11 +11,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "ubuntu works"
-  ping-windows:
-    runs-on: windows-latest
+  ping-macos-labels:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-14
+          - macos-13
+          - macos-15
+          - macos-latest
+          - macos-15-intel
+          - macos-26
+    runs-on: ${{ matrix.os }}
     steps:
-      - run: echo "windows works"
-  ping-mac:
-    runs-on: macos-latest
-    steps:
-      - run: echo "macos works"
+      - run: echo "${{ matrix.os }} works"
