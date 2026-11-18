@@ -3,16 +3,15 @@
 # GitHub Actions build: embedded localizations, unsigned Release build,
 # VESPER-style padding, BundledFiles injection, then a zip Payload.
 
-definitions:
-  workflows:
-    matino-x-ipa:
-      name: Build MATINO X IPA
-      max_build_duration: 60
-      instance_type: mac_mini_m2
-      environment:
-        vars:
-          APP_NAME: MATINO X
-      scripts:
+workflows:
+  matino-x-ipa:
+    name: Build MATINO X IPA
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      vars:
+        APP_NAME: MATINO X
+    scripts:
         - name: Generate embedded localization table
           script: |
             set -e
@@ -79,5 +78,5 @@ definitions:
             zip -9qry "MATINO X.ipa" Payload
             ls -lh "MATINO X.ipa"
 
-      artifacts:
-        - build/MATINO X.ipa
+    artifacts:
+      - build/MATINO X.ipa
