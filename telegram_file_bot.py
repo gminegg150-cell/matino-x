@@ -30,8 +30,27 @@ except ImportError:
 
 REPO = Path(__file__).resolve().parent
 DROP_DIR = REPO / "BundledFiles"
+ENV_FILE = REPO / ".env"
 
 API = "https://api.telegram.org/bot{token}"
+
+
+def load_env_file() -> None:
+    """Load KEY=VALUE lines from .env into os.environ (no dependency)."""
+    if not ENV_FILE.is_file():
+        return
+    for raw in ENV_FILE.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+load_env_file()
 
 
 def token() -> str:
