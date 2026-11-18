@@ -163,6 +163,13 @@ struct PatchProjectsView: View {
             }
             .navigationTitle(language.text("tab.installed"))
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                AppUtilityToolbar(
+                    language: language,
+                    onOpenSettings: onOpenSettings,
+                    onOpenLogs: onOpenLogs
+                )
+            }
             .sheet(isPresented: $showImporter) {
                 FileDocumentPicker(
                     allowedContentTypes: PatchPackagePickerPolicy.allowedContentTypes,
@@ -265,43 +272,7 @@ struct PatchProjectsView: View {
             .onChange(of: draftCoordinator.importRequest?.id) { _ in
                 consumeExternalImport()
             }
-            .overlay(alignment: .bottomTrailing) {
-                floatingSettingsButton
-                    .padding(.trailing, 20)
-                    .padding(.bottom, 16)
-            }
         }
-    }
-
-    /// MATINO X: settings is a floating gear pinned to the bottom-right
-    /// corner instead of a toolbar menu at the top.
-    private var floatingSettingsButton: some View {
-        Menu {
-            Button(action: onOpenSettings) {
-                Label(
-                    language.text("settings.title"),
-                    systemImage: "gearshape"
-                )
-            }
-            Button(action: onOpenLogs) {
-                Label(
-                    language.text("accessibility.open_logs"),
-                    systemImage: "apple.terminal"
-                )
-            }
-        } label: {
-            Image(systemName: "gearshape")
-                .font(.system(size: 21, weight: .semibold))
-                .foregroundStyle(AppTheme.accent)
-                .frame(width: 54, height: 54)
-                .background(AppTheme.consoleBackground, in: Circle())
-                .overlay {
-                    Circle()
-                        .strokeBorder(AppTheme.cardBorder, lineWidth: 1)
-                }
-                .shadow(color: .black.opacity(0.45), radius: 10, y: 4)
-        }
-        .accessibilityLabel(language.text("accessibility.open_settings"))
     }
 
     private func consumeExternalImport() {

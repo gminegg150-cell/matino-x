@@ -129,6 +129,10 @@ enum AppPaths {
 }
 
 enum AppUpdateChecker {
+    /// MATINO X: the "Update available" alert is switched off — set to
+    /// `true` to restore the GitHub release check.
+    static let enabled = false
+
     static let dismissedVersionKey = "update.dismissedVersion"
     static let apiURL = URL(string: "https://api.github.com/repos/YangJiiii/3105/releases/latest")!
     static let fallbackURL = URL(string: "https://github.com/YangJiiii/3105/releases/latest")!
@@ -150,6 +154,7 @@ enum AppUpdateChecker {
     }
 
     static func check() async -> Offer? {
+        guard enabled else { return nil }
         var request = URLRequest(url: apiURL)
         request.timeoutInterval = 15
         request.setValue("3105", forHTTPHeaderField: "User-Agent")
