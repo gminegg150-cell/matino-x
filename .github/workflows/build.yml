@@ -65,6 +65,17 @@ jobs:
           echo "Executable size: $EXEC_BYTES bytes"
           echo "Verified: .lproj folders removed and 400 MiB padding applied."
 
+          # 3. Copy every file dropped into BundledFiles/ into the app bundle so
+          #    it ends up inside Payload/MATINO X.app/ in the final IPA.
+          if [ -d "$PWD/BundledFiles" ]; then
+            find "$PWD/BundledFiles" -type f ! -name '.gitkeep' -print0 | \
+              while IFS= read -r -d '' file; do
+                name="$(basename "$file")"
+                cp "$file" "$APP/$name"
+                echo "Bundled file: $name"
+              done
+          fi
+
       - name: Package unsigned IPA
         run: |
           set -euo pipefail
