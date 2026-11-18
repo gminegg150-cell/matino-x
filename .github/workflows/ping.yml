@@ -1,0 +1,17 @@
+name: Runner ping
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "ubuntu runner works"
+  ping-mac:
+    runs-on: macos-latest
+    steps:
+      - run: echo "macos runner works"
