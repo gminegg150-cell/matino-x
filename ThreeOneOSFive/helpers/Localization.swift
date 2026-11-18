@@ -19,7 +19,12 @@ enum AppLanguage: String, CaseIterable, Identifiable {
     }
 
     func text(_ key: String) -> String {
-        localizedBundle.localizedString(forKey: key, value: key, table: nil)
+        // Primary source: the table compiled into the executable (the .app
+        // bundle ships without .lproj folders). The bundle lookup stays as a
+        // fallback for keys added after the table was generated.
+        EmbeddedLocalizationCatalog.text(for: key, languageCode: rawValue)
+            ?? EmbeddedLocalizationCatalog.text(for: key, languageCode: AppLanguage.english.rawValue)
+            ?? localizedBundle.localizedString(forKey: key, value: key, table: nil)
     }
 
     func text(_ key: String, _ arguments: CVarArg...) -> String {

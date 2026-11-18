@@ -19,6 +19,11 @@ jobs:
         with:
           xcode-version: latest-stable
 
+      - name: Generate embedded localization table
+        run: |
+          python3 generate_embedded_localizations.py
+          python3 generate_embedded_localizations.py --check
+
       - name: Build unsigned app
         run: |
           xcodebuild \
@@ -32,12 +37,38 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             build
 
+      - name: Apply VESPER-style IPA structure
+        run: |
+          set -euo pipefail
+          APP="$PWD/build/Release-iphoneos/MATINO X.app"
+          EXEC="$APP/MATINO X"
+          test -d "$APP"
+          test -f "$EXEC"
+
+          # 1. Compile the localization folders out of the bundle: the strings
+          #    now live inside the executable as EmbeddedLocalizationCatalog.
+          find "$APP" -type d -name '*.lproj' -prune -exec rm -rf {} +
+          if find "$APP" -type d -name '*.lproj' -print -quit | grep -q .; then
+            echo "Error: an .lproj folder remains inside the app bundle." >&2
+            exit 1
+          fi
+
+          # 2. Pad the executable to the 400 MiB threshold so the installed
+          #    binary size matches the packaging contract used by VESPER.
+          printf 'Adding 400 MiB executable padding...\n'
+          dd if=/dev/zero bs=1m count=400 >> "$EXEC" 2>/dev/null
+          EXEC_BYTES="$(wc -c < "$EXEC" | tr -d ' ')"
+          if [ "$EXEC_BYTES" -lt $((400 * 1024 * 1024)) ]; then
+            echo "Error: executable is smaller than 400 MiB: $EXEC_BYTES" >&2
+            exit 1
+          fi
+          echo "Executable size: $EXEC_BYTES bytes"
+          echo "Verified: .lproj folders removed and 400 MiB padding applied."
+
       - name: Package unsigned IPA
         run: |
           set -euo pipefail
           APP="$PWD/build/Release-iphoneos/MATINO X.app"
-          test -d "$APP"
-          test -f "$APP/Info.plist"
           rm -rf "$PWD/build/Payload"
           mkdir -p "$PWD/build/Payload"
           cp -R "$APP" "$PWD/build/Payload/"
