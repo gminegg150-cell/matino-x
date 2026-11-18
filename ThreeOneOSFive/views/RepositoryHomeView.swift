@@ -202,7 +202,7 @@ struct RepositoryHomeView: View {
                     .minimumScaleFactor(0.75)
                 Text(language.text("repository.package_count", Int64(count)))
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(isSelected ? Color.secondary : Color.tertiary)
+                    .foregroundStyle(isSelected ? Color.secondary : Color.secondary.opacity(0.55))
                     .lineLimit(1)
                     .minimumScaleFactor(0.75)
             }
