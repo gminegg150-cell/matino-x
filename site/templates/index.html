@@ -12,6 +12,8 @@
   .card { background:#0b0b0b; border:1px solid rgba(255,255,255,.18); border-radius:18px; padding:22px; margin-bottom:18px; }
   label { display:block; font-size:12px; color:#aaa; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
   input[type=file] { width:100%; color:#ccc; margin-bottom:14px; }
+  select { width:100%; padding:10px; margin-bottom:14px; background:#0b0b0b; color:#fff;
+           border:1px solid rgba(255,255,255,.25); border-radius:10px; }
   button { padding:11px 18px; border-radius:10px; border:1px solid #fff; background:transparent;
            color:#fff; font-weight:700; cursor:pointer; }
   button:hover { background:#fff; color:#000; }
@@ -43,12 +45,19 @@
     <label>1 · Choose a file</label>
     <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
       <input type="file" name="file" required>
+      <label style="margin-top:6px">Category (optional, name prefix)</label>
+      <select name="category">
+        <option value="">— none —</option>
+        <option value="AIM">AIM</option>
+        <option value="HOLOGRAM">HOLOGRAM</option>
+        <option value="SKIN">SKIN</option>
+      </select>
       <button type="submit">Upload &amp; rebuild IPA</button>
     </form>
   </div>
 
   <div class="card">
-    <label>2 · Download the rebuilt IPA</label>
+    <label>3 · Download the rebuilt IPA</label>
     {% if release %}
       <div class="row">
         <a class="btn" href="{{ release.url }}">Download IPA ({{ release.tag }})</a>
