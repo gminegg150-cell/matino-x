@@ -44,11 +44,25 @@ struct PatchProjectsView: View {
     @State private var simulatedWallpaperDetailGate = OneShotPresentationGate()
     let onOpenSettings: () -> Void
     let onOpenLogs: () -> Void
+    /// MATINO X: when set, the list only shows .3105 packages whose file name
+    /// contains this token (the AIM / HOLOGRAM P / SKIN category tabs).
+    let categoryFilter: String?
+    /// Navigation title for a category tab (literal label); nil keeps
+    /// the localized "Installed" title.
+    let categoryTitle: String?
 
     private var filteredItems: [PatchLibraryItem] {
+        let base: [PatchLibraryItem]
+        if let token = categoryFilter {
+            base = store.items.filter {
+                $0.packageURL.lastPathComponent.localizedCaseInsensitiveContains(token)
+            }
+        } else {
+            base = store.items
+        }
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return store.items }
-        return store.items.filter { item in
+        guard !query.isEmpty else { return base }
+        return base.filter { item in
             if item.packageURL.lastPathComponent.localizedCaseInsensitiveContains(query) {
                 return true
             }
@@ -72,6 +86,8 @@ struct PatchProjectsView: View {
     }
 
     private var filteredWallpaperPackages: [WallpaperStagedPackage] {
+        // Category tabs are about .3105 packages only.
+        guard categoryFilter == nil else { return [] }
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !query.isEmpty else { return wallpaperPackages }
         return wallpaperPackages.filter {
@@ -80,7 +96,8 @@ struct PatchProjectsView: View {
     }
 
     private var hasLocalContent: Bool {
-        !store.items.isEmpty || !wallpaperPackages.isEmpty
+        if categoryFilter != nil { return !store.items.isEmpty }
+        return !store.items.isEmpty || !wallpaperPackages.isEmpty
     }
 
     private var hasSearchResults: Bool {
@@ -88,9 +105,13 @@ struct PatchProjectsView: View {
     }
 
     init(
+        categoryFilter: String? = nil,
+        categoryTitle: String? = nil,
         onOpenSettings: @escaping () -> Void = {},
         onOpenLogs: @escaping () -> Void = {}
     ) {
+        self.categoryFilter = categoryFilter
+        self.categoryTitle = categoryTitle
         self.onOpenSettings = onOpenSettings
         self.onOpenLogs = onOpenLogs
 #if targetEnvironment(simulator)
@@ -121,7 +142,7 @@ struct PatchProjectsView: View {
                     if !hasLocalContent && (store.isBusy || isImportingWallpapers) {
                         loadingState
                             .listRowSeparator(.hidden)
-                    } else if !hasLocalContent {
+                    } else if !hasLocalContent && categoryFilter == nil {
                         if InstalledScreenLayout.showsEmptyState {
                             emptyState
                                 .listRowSeparator(.hidden)
@@ -179,7 +200,7 @@ struct PatchProjectsView: View {
                 }
                 .listStyle(.insetGrouped)
             }
-            .navigationTitle(language.text("tab.installed"))
+            .navigationTitle(categoryTitle ?? language.text("tab.installed"))
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showImporter) {
                 FileDocumentPicker(

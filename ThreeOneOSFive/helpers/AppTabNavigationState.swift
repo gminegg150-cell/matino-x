@@ -7,8 +7,36 @@ enum AppSection: Int, CaseIterable, Identifiable {
     case installed
     case files
     case search
+    // MATINO X: category tabs. They sit after the legacy cases so the raw
+    // values of the simulator arguments keep meaning the same thing.
+    case aim
+    case hologram
+    case skin
 
     var id: Int { rawValue }
+
+    /// MATINO X: category tabs are read-only filters over Installed - they
+    /// show the .3105 packages whose file name mentions the category and
+    /// expose no apply/run control of their own.
+    var packageFilterToken: String? {
+        switch self {
+        case .aim: return "aim"
+        case .hologram: return "hologram"
+        case .skin: return "skin"
+        default: return nil
+        }
+    }
+
+    /// Literal title for the category tabs. They are fixed labels, so they are
+    /// not run through the localization table. nil means "use titleKey".
+    var categoryTabTitle: String? {
+        switch self {
+        case .aim: return "AIM"
+        case .hologram: return "HOLOGRAM P"
+        case .skin: return "SKIN"
+        default: return nil
+        }
+    }
 }
 
 enum WallpaperFeatureSupportPolicy {
@@ -35,11 +63,15 @@ struct OneShotPresentationGate: Equatable {
 struct FeatureVisibility: Equatable {
     static let cleanerStorageKey = "feature.cleaner.enabled"
     static let developerModeStorageKey = "feature.developer_mode.enabled"
+    /// MATINO X: the AIM / HOLOGRAM P / SKIN category tabs.
+    static let categoryTabsStorageKey = "feature.category_tabs.enabled"
 
     let developerModeEnabled: Bool
+    let categoryTabsEnabled: Bool
 
-    init(developerModeEnabled: Bool) {
+    init(developerModeEnabled: Bool, categoryTabsEnabled: Bool = true) {
         self.developerModeEnabled = developerModeEnabled
+        self.categoryTabsEnabled = categoryTabsEnabled
     }
 
     var visibleSections: [AppSection] {
@@ -50,6 +82,8 @@ struct FeatureVisibility: Equatable {
         switch section {
         case .installed:
             return true
+        case .aim, .hologram, .skin:
+            return categoryTabsEnabled
         case .files:
             return developerModeEnabled
         case .home, .new, .sources, .search:

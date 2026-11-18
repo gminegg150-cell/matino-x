@@ -9,6 +9,8 @@ struct ContentView: View {
     @EnvironmentObject private var repositoryStore: PackageRepositoryStore
     @AppStorage(FeatureVisibility.developerModeStorageKey)
     private var developerModeEnabled = false
+    @AppStorage(FeatureVisibility.categoryTabsStorageKey)
+    private var categoryTabsEnabled = true
     @State private var tabNavigation: AppTabNavigationState
     @State private var showSettings = false
     @State private var showLogs = false
@@ -60,6 +62,9 @@ struct ContentView: View {
         .onChange(of: developerModeEnabled) { _ in
             tabNavigation.reconcileSelection(with: featureVisibility)
         }
+        .onChange(of: categoryTabsEnabled) { _ in
+            tabNavigation.reconcileSelection(with: featureVisibility)
+        }
         .onAppear {
             tabNavigation.reconcileSelection(with: featureVisibility)
         }
@@ -75,7 +80,7 @@ struct ContentView: View {
                 sectionContent(section)
                     .tabItem {
                         CompactTabLabel(
-                            title: language.text(section.titleKey),
+                            title: section.displayTitle(language: language),
                             systemImage: section.systemImage
                         )
                     }
@@ -96,7 +101,7 @@ struct ContentView: View {
                             tabNavigation.select(section.rawValue)
                         }
                     } label: {
-                        Label(language.text(section.titleKey), systemImage: section.systemImage)
+                        Label(section.displayTitle(language: language), systemImage: section.systemImage)
                             .fontWeight(section.rawValue == tabNavigation.selectedTab ? .semibold : .regular)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .contentShape(Rectangle())
@@ -139,8 +144,12 @@ struct ContentView: View {
                 onOpenSettings: openSettings,
                 onOpenLogs: openLogs
             )
-        case .installed:
+        case .installed, .aim, .hologram, .skin:
+            // MATINO X: the three category tabs reuse Installed as a filtered,
+            // read-only list (no apply/run control is added).
             PatchProjectsView(
+                categoryFilter: section.packageFilterToken,
+                categoryTitle: section.categoryTabTitle,
                 onOpenSettings: openSettings,
                 onOpenLogs: openLogs
             )
@@ -173,7 +182,10 @@ struct ContentView: View {
     }
 
     private var featureVisibility: FeatureVisibility {
-        FeatureVisibility(developerModeEnabled: developerModeActive)
+        FeatureVisibility(
+            developerModeEnabled: developerModeActive,
+            categoryTabsEnabled: categoryTabsEnabled
+        )
     }
 
     private var developerModeActive: Bool {
@@ -230,7 +242,16 @@ private extension AppSection {
         case .installed: return "tab.installed"
         case .files: return "tab.files"
         case .search: return "tab.search"
+        case .aim: return "tab.aim"
+        case .hologram: return "tab.hologram"
+        case .skin: return "tab.skin"
         }
+    }
+
+    /// MATINO X: the category tabs carry fixed labels, so they bypass the
+    /// localization table (which has no entry for them).
+    func displayTitle(language: AppLanguage) -> String {
+        categoryTabTitle ?? language.text(titleKey)
     }
 
     var systemImage: String {
@@ -241,6 +262,9 @@ private extension AppSection {
         case .installed: return "tray.full.fill"
         case .files: return "folder.fill"
         case .search: return "magnifyingglass"
+        case .aim: return "scope"
+        case .hologram: return "cube.transparent.fill"
+        case .skin: return "tshirt.fill"
         }
     }
 }
