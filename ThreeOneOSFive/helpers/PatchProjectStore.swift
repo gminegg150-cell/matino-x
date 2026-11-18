@@ -38,9 +38,12 @@ final class PatchProjectStore: ObservableObject {
     private var pendingUnlock: PendingUnlock?
     private var lastRepositorySync: Date?
 
-    /// MATINO X: minimum gap between two repository syncs, so returning to the
-    /// foreground does not hammer the GitHub API.
-    private static let repositorySyncInterval: TimeInterval = 45
+    /// MATINO X: minimum gap between two repository syncs. Kept short so a
+    /// deletion made on the site shows up quickly when returning to the app.
+    private static let repositorySyncInterval: TimeInterval = 5
+    /// Names removed from the repository, so the bundle import does not bring
+    /// them back on the next launch.
+    private static let remoteRemovedKey = "patch.remote_removed_files"
 
     init() {
         isBusy = true
@@ -142,15 +145,23 @@ final class PatchProjectStore: ObservableObject {
             try? data.write(to: destination, options: .atomic)
         }
 
-        // Mirror deletions: anything we synced before that the repository (and
-        // the app bundle) no longer holds is removed from Installed.
-        for name in previouslyTracked.subtracting(current).subtracting(bundled) {
+        // Mirror deletions. The repository is the source of truth: anything we
+        // synced before that the repository no longer holds is removed from
+        // Installed, even if the installed IPA happens to bundle a copy.
+        let removed = previouslyTracked.subtracting(current)
+        for name in removed {
             let stale = root.appendingPathComponent(name)
             if fm.fileExists(atPath: stale.path) {
                 try? fm.removeItem(at: stale)
             }
         }
 
+        // Remember removals so importBundledPackagesIfNeeded() does not copy a
+        // deleted bundle file back into the library on the next launch.
+        var removedNames = Set(defaults.stringArray(forKey: remoteRemovedKey) ?? [])
+        removedNames.subtract(current) // a file re-added to the repo is no longer removed
+        removedNames.formUnion(removed)
+        defaults.set(Array(removedNames), forKey: remoteRemovedKey)
         defaults.set(Array(current), forKey: remoteTrackedKey)
     }
 
@@ -167,7 +178,10 @@ final class PatchProjectStore: ObservableObject {
         let defaults = UserDefaults.standard
         let trackedKey = "patch.imported_bundled_files"
         let previouslyTracked = Set(defaults.stringArray(forKey: trackedKey) ?? [])
+        // MATINO X: never re-import a file the repository sync deleted.
+        let remoteRemoved = Set(defaults.stringArray(forKey: remoteRemovedKey) ?? [])
         let bundled = Set(names.filter { $0.lowercased().hasSuffix(".3105") })
+            .subtracting(remoteRemoved)
 
         func modificationDate(_ url: URL) -> Date {
             (try? fm.attributesOfItem(atPath: url.path)[.modificationDate] as? Date) ?? .distantPast
