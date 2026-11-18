@@ -667,3 +667,9 @@
 "settings.developer_mode_footer" = "开发者模式会在主导航中添加“文件”。“文件”可以浏览和修改应用容器。";
 "wallpaper.package_details" = "软件包详情";
 "wallpaper.package_files" = "%lld 个文件";
+
+"settings.appearance" = "外观";
+"settings.accent_color" = "强调色";
+"settings.reset_color" = "重置颜色";
+"settings.rainbow" = "彩虹 RGB";
+"settings.rainbow_active" = "彩虹颜色已启用";

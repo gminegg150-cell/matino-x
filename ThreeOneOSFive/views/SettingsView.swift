@@ -6,6 +6,10 @@ struct SettingsView: View {
     @EnvironmentObject private var appState: AppState
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
     @AppStorage(FeatureVisibility.cleanerStorageKey) private var cleanerEnabled = true
+    @AppStorage(AppTheme.redKey) private var redChannel = AppTheme.defaultChannel
+    @AppStorage(AppTheme.greenKey) private var greenChannel = AppTheme.defaultChannel
+    @AppStorage(AppTheme.blueKey) private var blueChannel = AppTheme.defaultChannel
+    @AppStorage(AppTheme.rainbowKey) private var rainbowEnabled = false
     @AppStorage(FeatureVisibility.developerModeStorageKey)
     private var developerModeEnabled = false
 
@@ -24,6 +28,37 @@ struct SettingsView: View {
                         }
                     }
                     .padding(.vertical, 4)
+                }
+
+                Section(language.text("settings.appearance")) {
+                    Toggle(isOn: $rainbowEnabled) {
+                        Label(language.text("settings.rainbow"), systemImage: "rainbow")
+                    }
+                    .tint(AppTheme.accent)
+
+                    HStack(spacing: 12) {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(AppTheme.accent)
+                            .frame(width: 42, height: 28)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .strokeBorder(Color.white.opacity(0.25), lineWidth: 0.5)
+                            )
+                        Text(language.text(rainbowEnabled ? "settings.rainbow_active" : "settings.accent_color"))
+                            .foregroundStyle(.primary)
+                        Spacer()
+                    }
+
+                    rgbRow(title: "R", value: $redChannel, color: .red)
+                    rgbRow(title: "G", value: $greenChannel, color: .green)
+                    rgbRow(title: "B", value: $blueChannel, color: .blue)
+
+                    Button(language.text("settings.reset_color")) {
+                        redChannel = AppTheme.defaultChannel
+                        greenChannel = AppTheme.defaultChannel
+                        blueChannel = AppTheme.defaultChannel
+                        rainbowEnabled = false
+                    }
                 }
 
                 Section(language.text("settings.language")) {
@@ -159,6 +194,22 @@ struct SettingsView: View {
         Bundle.main.object(forInfoDictionaryKey: "AppReleaseDisplayVersion") as? String
             ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
             ?? "1.0"
+    }
+
+    private func rgbRow(title: String, value: Binding<Double>, color: Color) -> some View {
+        HStack(spacing: 10) {
+            Text(title)
+                .font(.headline.monospaced())
+                .foregroundStyle(color)
+                .frame(width: 24)
+            Slider(value: value, in: 0...255, step: 1)
+                .tint(color)
+            Text("\(Int(value.wrappedValue))")
+                .font(.caption.monospacedDigit())
+                .frame(width: 32, alignment: .trailing)
+        }
+        .disabled(rainbowEnabled)
+        .opacity(rainbowEnabled ? 0.45 : 1)
     }
 
     private func versionLabel(

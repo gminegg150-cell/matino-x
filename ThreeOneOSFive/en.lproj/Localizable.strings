@@ -667,3 +667,9 @@
 "settings.developer_mode_footer" = "Developer Mode adds Files to the main navigation. Files can browse and modify application containers.";
 "wallpaper.package_details" = "Package Details";
 "wallpaper.package_files" = "%lld files";
+
+"settings.appearance" = "Appearance";
+"settings.accent_color" = "Accent color";
+"settings.reset_color" = "Reset color";
+"settings.rainbow" = "Rainbow RGB";
+"settings.rainbow_active" = "Rainbow colors are active";

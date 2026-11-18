@@ -70,6 +70,7 @@ struct ThreeOneOSFiveApp: App {
                         .zIndex(2)
                 }
             }
+            .preferredColorScheme(.dark)
             .displayIdentityAttribution(isPresented: $showAttribution, enabled: !showOnboarding && license.isActivated)
             .sheet(isPresented: $showAttribution) {
                 DisplayAttributionSheet()

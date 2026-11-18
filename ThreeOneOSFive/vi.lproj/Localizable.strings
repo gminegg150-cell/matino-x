@@ -667,3 +667,9 @@
 "settings.developer_mode_footer" = "Chế độ nhà phát triển thêm mục Tệp vào thanh điều hướng chính. Tệp có thể duyệt và chỉnh sửa container ứng dụng.";
 "wallpaper.package_details" = "Chi tiết gói";
 "wallpaper.package_files" = "%lld tệp";
+
+"settings.appearance" = "Giao diện";
+"settings.accent_color" = "Màu nhấn";
+"settings.reset_color" = "Đặt lại màu";
+"settings.rainbow" = "RGB cầu vồng";
+"settings.rainbow_active" = "Màu cầu vồng đang bật";
