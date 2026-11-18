@@ -124,7 +124,7 @@ final class PatchProjectStore: ObservableObject {
 
         var current = Set<String>()
         for package in listing
-        where package.type == "file", package.name.lowercased().hasSuffix(".3105") {
+        where package.type == "file" && package.name.lowercased().hasSuffix(".3105") {
             current.insert(package.name)
             // The bundle already carries this file: the local sync owns it.
             guard !bundled.contains(package.name) else { continue }
