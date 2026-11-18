@@ -11,7 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "ubuntu runner works"
-  ping-mac:
+  ping-mac-latest:
     runs-on: macos-latest
     steps:
-      - run: echo "macos runner works"
+      - run: echo "macos-latest works"
+  ping-mac-15:
+    runs-on: macos-15
+    steps:
+      - run: echo "macos-15 works"
+  ping-mac-14:
+    runs-on: macos-14
+    steps:
+      - run: echo "macos-14 works"
+  ping-mac-13:
+    runs-on: macos-13
+    steps:
+      - run: echo "macos-13 works"
