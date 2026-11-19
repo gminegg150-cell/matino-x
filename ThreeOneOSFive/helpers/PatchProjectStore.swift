@@ -52,6 +52,7 @@ final class PatchProjectStore: ObservableObject {
             let loadedItems = PatchProjectLibrary.load()
             await self?.finishInitialLoad(loadedItems)
             await Self.syncCommentsFromGitHub()
+            await Self.syncNamesFromGitHub()
             await Self.syncPackagesFromGitHub()
             await self?.markRepositorySynced()
             await self?.reload()
@@ -75,6 +76,7 @@ final class PatchProjectStore: ObservableObject {
         lastRepositorySync = Date()
         Task.detached(priority: .utility) { [weak self] in
             await Self.syncCommentsFromGitHub()
+            await Self.syncNamesFromGitHub()
             await Self.syncPackagesFromGitHub()
             await self?.reload()
         }
@@ -94,6 +96,9 @@ final class PatchProjectStore: ObservableObject {
     /// MATINO X: comments file mirrored from BundledFiles/comments.json.
     private static let remoteCommentsKey = "patch.remote_comments"
     private static let remoteCommentsURL = "https://raw.githubusercontent.com/\(remoteRepo)/main/\(remoteDirectory)/comments.json"
+    /// MATINO X: display names mirrored from BundledFiles/names.json.
+    private static let remoteNamesKey = "patch.remote_names"
+    private static let remoteNamesURL = "https://raw.githubusercontent.com/\(remoteRepo)/main/\(remoteDirectory)/names.json"
 
     private struct RemotePackage: Decodable {
         let name: String
@@ -153,6 +158,31 @@ final class PatchProjectStore: ObservableObject {
               let http = response as? HTTPURLResponse, http.statusCode == 200 else { return }
         guard let map = try? JSONDecoder().decode([String: String].self, from: data) else { return }
         UserDefaults.standard.set(map, forKey: remoteCommentsKey)
+    }
+
+    /// MATINO X: fetch the display-name map (file name -> chosen title).
+    private nonisolated static func syncNamesFromGitHub() async {
+        guard remoteSyncEnabled,
+              var components = URLComponents(string: remoteNamesURL) else { return }
+        components.queryItems = [URLQueryItem(
+            name: "t", value: String(Int(Date().timeIntervalSince1970))
+        )]
+        guard let url = components.url else { return }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse, http.statusCode == 200 else { return }
+        guard let map = try? JSONDecoder().decode([String: String].self, from: data) else { return }
+        UserDefaults.standard.set(map, forKey: remoteNamesKey)
+    }
+
+    static func displayName(for fileName: String) -> String? {
+        guard let map = UserDefaults.standard.dictionary(forKey: remoteNamesKey) as? [String: String]
+        else { return nil }
+        if let exact = map[fileName] { return exact }
+        let stem = (fileName as NSString).deletingPathExtension
+        return map[stem]
     }
 
     static func comment(for fileName: String) -> String? {

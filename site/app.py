@@ -74,6 +74,22 @@ def logged_in() -> bool:
 
 
 COMMENTS_FILE = DROP_DIR / "comments.json"
+NAMES_FILE = DROP_DIR / "names.json"
+
+
+def load_names() -> dict:
+    try:
+        data = json.loads(NAMES_FILE.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def save_names(names: dict) -> None:
+    DROP_DIR.mkdir(parents=True, exist_ok=True)
+    NAMES_FILE.write_text(
+        json.dumps(names, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def load_comments() -> dict:
@@ -161,11 +177,12 @@ def index():
     if DROP_DIR.is_dir():
         files = sorted(
             f.name for f in DROP_DIR.iterdir()
-            if f.is_file() and f.name not in {".gitkeep", "comments.json"}
+            if f.is_file() and f.name not in {".gitkeep", "comments.json", "names.json"}
         )
 
     return render_template(
-        "index.html", files=files, comments=load_comments(), release=latest_release()
+        "index.html", files=files, comments=load_comments(),
+        names=load_names(), release=latest_release()
     )
 
 
@@ -223,9 +240,19 @@ def upload():
         comments[name] = comment
     save_comments(comments)
 
+    # MATINO X: optional display name shown as the row title in the app.
+    display = request.form.get("display_name", "").strip()
+    names = load_names()
+    names.pop(name, None)
+    names.pop(stem, None)
+    if display:
+        names[name] = display
+    save_names(names)
+
     try:
         subprocess.run(
-            ["git", "add", "--", f"BundledFiles/{name}", "BundledFiles/comments.json"],
+            ["git", "add", "--", f"BundledFiles/{name}",
+             "BundledFiles/comments.json", "BundledFiles/names.json"],
             cwd=REPO, check=True
         )
         staged = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=REPO).returncode
@@ -255,7 +282,7 @@ def delete():
         return redirect(url_for("index"))
 
     name = safe_name(request.form.get("name", ""))
-    if name in {".gitkeep", "comments.json"}:
+    if name in {".gitkeep", "comments.json", "names.json"}:
         flash("This file cannot be deleted.")
         return redirect(url_for("index"))
     target = DROP_DIR / name
@@ -269,6 +296,10 @@ def delete():
         comments.pop(name, None)
         comments.pop(name.rsplit(".", 1)[0], None)
         save_comments(comments)
+        names = load_names()
+        names.pop(name, None)
+        names.pop(name.rsplit(".", 1)[0], None)
+        save_names(names)
         subprocess.run(["git", "add", "-A", "--", "BundledFiles"], cwd=REPO, check=True)
         subprocess.run(
             ["git", "commit", "-m", f"Remove bundled file: {name} [skip ci]"], cwd=REPO, check=True
@@ -294,7 +325,7 @@ def rename():
 
     old = safe_name(request.form.get("old_name", ""))
     raw_new = request.form.get("new_name", "").strip()
-    if old in {".gitkeep", "comments.json"}:
+    if old in {".gitkeep", "comments.json", "names.json"}:
         flash("This file cannot be renamed.")
         return redirect(url_for("index"))
 
@@ -325,6 +356,12 @@ def rename():
         if comment:
             comments[new] = comment
         save_comments(comments)
+        names = load_names()
+        display = names.pop(old, None)
+        names.pop(old.rsplit(".", 1)[0], None)
+        if display:
+            names[new] = display
+        save_names(names)
         subprocess.run(["git", "add", "-A", "--", "BundledFiles"], cwd=REPO, check=True)
         subprocess.run(
             ["git", "commit", "-m", f"Rename {old} -> {new} [skip ci]"], cwd=REPO, check=True

@@ -650,7 +650,10 @@ private struct PatchProjectRow: View {
         HStack(spacing: 12) {
             AppRowIcon(systemName: item.isLocked ? "lock.doc.fill" : "shippingbox.fill")
             VStack(alignment: .leading, spacing: 3) {
-                Text(item.project?.name ?? language.text("patch.locked_project"))
+                // MATINO X: show the name chosen on the site when available.
+                Text(PatchProjectStore.displayName(for: item.packageURL.lastPathComponent)
+                     ?? item.project?.name
+                     ?? language.text("patch.locked_project"))
                     .font(.body.weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
