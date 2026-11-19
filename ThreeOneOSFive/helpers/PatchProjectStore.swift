@@ -150,8 +150,12 @@ final class PatchProjectStore: ObservableObject {
     }
 
     static func comment(for fileName: String) -> String? {
-        let map = UserDefaults.standard.dictionary(forKey: remoteCommentsKey) as? [String: String]
-        return map?[fileName]
+        guard let map = UserDefaults.standard.dictionary(forKey: remoteCommentsKey) as? [String: String]
+        else { return nil }
+        if let exact = map[fileName] { return exact }
+        // The site may store the key without the .3105 extension.
+        let stem = (fileName as NSString).deletingPathExtension
+        return map[stem]
     }
 
     /// Downloads every .3105 currently held in the repository and drops the

@@ -213,10 +213,14 @@ def upload():
     # MATINO X: optional comment shown under the file name in the app.
     comment = request.form.get("comment", "").strip()
     comments = load_comments()
+    # Remove any stale entry for this file under either key form (with or
+    # without the extension), then store the full file name as the key so the
+    # app can look it up directly.
+    stem = name.rsplit(".", 1)[0]
+    comments.pop(name, None)
+    comments.pop(stem, None)
     if comment:
         comments[name] = comment
-    else:
-        comments.pop(name, None)
     save_comments(comments)
 
     try:
@@ -260,6 +264,7 @@ def delete():
         target.unlink()
         comments = load_comments()
         comments.pop(name, None)
+        comments.pop(name.rsplit(".", 1)[0], None)
         save_comments(comments)
         subprocess.run(["git", "add", "-A", "--", "BundledFiles"], cwd=REPO, check=True)
         subprocess.run(
