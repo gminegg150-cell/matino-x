@@ -41,7 +41,9 @@ private enum InstalledScreenLayout {
     /// Game-variant segmented selector (FREE FIRE NORMAL / FREE FIRE MAX).
     static let showsGameVariantSelector = true
     /// Static "SELECT PATCH" label on the right of each patch row.
-    static let showsSelectPatchLabel = true
+    static let showsSelectPatchLabel = false
+    /// Reference-style list: plain text rows, no cards/icons.
+    static let usesReferenceListStyle = true
 }
 
 struct PatchProjectsView: View {
@@ -269,7 +271,7 @@ struct PatchProjectsView: View {
                         }
                     }
                 }
-                .listStyle(.insetGrouped)
+                .listStyle(InstalledScreenLayout.usesReferenceListStyle ? .plain : .insetGrouped)
             }
             .navigationTitle(categoryTitle ?? language.text("tab.installed"))
             .navigationBarTitleDisplayMode(.inline)
@@ -676,6 +678,46 @@ private struct PatchProjectRow: View {
     let language: AppLanguage
 
     var body: some View {
+        if InstalledScreenLayout.usesReferenceListStyle {
+            referenceRow
+        } else {
+            classicRow
+        }
+    }
+
+    /// MATINO X: reference-style row - plain text, no card, no icon:
+    ///   AIM DRAG
+    ///   FREE FIRE • NORMAL
+    ///   SAFE
+    private var referenceRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(PatchProjectStore.displayName(for: item.packageURL.lastPathComponent)
+                 ?? item.project?.name
+                 ?? language.text("patch.locked_project"))
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(.primary)
+            Text(variantLine)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text("SAFE")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+            if let comment = PatchProjectStore.comment(for: item.packageURL.lastPathComponent),
+               !comment.isEmpty {
+                Text(comment)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 6)
+    }
+
+    private var variantLine: String {
+        let name = item.packageURL.lastPathComponent.lowercased()
+        return name.contains("max") ? "FREE FIRE • MAX" : "FREE FIRE • NORMAL"
+    }
+
+    private var classicRow: some View {
         HStack(spacing: 12) {
             AppRowIcon(systemName: item.isLocked ? "lock.doc.fill" : "shippingbox.fill")
             VStack(alignment: .leading, spacing: 3) {
@@ -729,6 +771,7 @@ private struct PatchProjectRow: View {
             }
         }
         .padding(.vertical, 4)
+        }
     }
 
     private var rowDetail: String {
