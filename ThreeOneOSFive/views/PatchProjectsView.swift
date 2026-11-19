@@ -30,6 +30,11 @@ private enum InstalledScreenLayout {
     static let showsPrivacyRow = false
     static let showsPasswordSection = false
     static let showsExportButton = false
+    /// List-row extras: kind badge (.3105) and workspace-item count.
+    static let showsKindBadge = false
+    static let showsRowDetail = false
+    /// Swipe-to-delete in the list. Files are managed from the site only.
+    static let allowsRowDeletion = false
 }
 
 struct PatchProjectsView: View {
@@ -190,11 +195,19 @@ struct PatchProjectsView: View {
                     } else {
                         if !filteredItems.isEmpty {
                             Section(language.text("patch.title")) {
-                                ForEach(filteredItems) { item in
-                                    itemRow(item)
-                                }
-                                .onDelete { offsets in
-                                    offsets.map { filteredItems[$0] }.forEach(store.delete)
+                                // MATINO X: swipe-to-delete is disabled; files
+                                // are managed from the site only.
+                                if InstalledScreenLayout.allowsRowDeletion {
+                                    ForEach(filteredItems) { item in
+                                        itemRow(item)
+                                    }
+                                    .onDelete { offsets in
+                                        offsets.map { filteredItems[$0] }.forEach(store.delete)
+                                    }
+                                } else {
+                                    ForEach(filteredItems) { item in
+                                        itemRow(item)
+                                    }
                                 }
                             }
                         }
@@ -641,15 +654,19 @@ private struct PatchProjectRow: View {
                     .font(.body.weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
-                InstalledContentKindBadge(kind: .patch, language: language)
+                if InstalledScreenLayout.showsKindBadge {
+                    InstalledContentKindBadge(kind: .patch, language: language)
+                }
                 if let author = item.project?.author, !author.isEmpty {
                     Text(language.text("patch.by_author", author))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                Text(rowDetail)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                if InstalledScreenLayout.showsRowDetail {
+                    Text(rowDetail)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
             Spacer()
             if item.summary.isPasswordProtected {
