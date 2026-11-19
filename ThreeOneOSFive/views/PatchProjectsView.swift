@@ -37,6 +37,9 @@ struct PatchProjectsView: View {
     @State private var showWallpaperImporter = false
     @State private var showCleaner = false
     @State private var searchText = ""
+    /// MATINO X: read-only game-variant filter shown in the category tabs.
+    /// nil = all, 0 = FREE FIRE (normal), 1 = FREE FIRE MAX.
+    @State private var gameVariant: Int? = nil
     @State private var wallpaperPackages: [WallpaperStagedPackage] = []
     @State private var wallpaperImportFeedback: WallpaperImportFeedback?
     @State private var wallpaperPendingDeletion: WallpaperStagedPackage?
@@ -66,9 +69,20 @@ struct PatchProjectsView: View {
         } else {
             base = store.items
         }
+        // MATINO X: game-variant filter. A file name containing "MAX" is a
+        // FREE FIRE MAX package; everything else is FREE FIRE (normal).
+        let variantFiltered: [PatchLibraryItem]
+        if let variant = gameVariant {
+            variantFiltered = base.filter { item in
+                let isMax = item.packageURL.lastPathComponent.localizedCaseInsensitiveContains("max")
+                return variant == 1 ? isMax : !isMax
+            }
+        } else {
+            variantFiltered = base
+        }
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return base }
-        return base.filter { item in
+        guard !query.isEmpty else { return variantFiltered }
+        return variantFiltered.filter { item in
             if item.packageURL.lastPathComponent.localizedCaseInsensitiveContains(query) {
                 return true
             }
@@ -145,6 +159,10 @@ struct PatchProjectsView: View {
                     Divider()
                 }
                 List {
+                    if categoryFilter != nil {
+                        gameVariantSelector
+                            .listRowSeparator(.hidden)
+                    }
                     if !hasLocalContent && (store.isBusy || isImportingWallpapers) {
                         loadingState
                             .listRowSeparator(.hidden)
@@ -327,6 +345,48 @@ struct PatchProjectsView: View {
                 if scenePhase == .active { store.refreshFromRepository() }
             }
         }
+    }
+
+    /// MATINO X: read-only two-option filter (no apply/run). Selecting an
+    /// option only narrows which .3105 packages are listed in this tab.
+    private var gameVariantSelector: some View {
+        HStack(spacing: 10) {
+            variantButton(title: "FREE FIRE", subtitle: "NORMAL", value: 0)
+            variantButton(title: "FREE FIRE MAX", subtitle: "MAX", value: 1)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private func variantButton(title: String, subtitle: String, value: Int) -> some View {
+        let selected = gameVariant == value
+        return Button {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                gameVariant = selected ? nil : value
+            }
+        } label: {
+            VStack(spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15, weight: .bold))
+                Text(subtitle)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(selected ? AppTheme.accent.opacity(0.18) : AppTheme.consoleBackground)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 12)
+                    .strokeBorder(
+                        selected ? AppTheme.accent : AppTheme.cardBorder,
+                        lineWidth: selected ? 2 : 1
+                    )
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
     }
 
     private var settingsGearButton: some View {
