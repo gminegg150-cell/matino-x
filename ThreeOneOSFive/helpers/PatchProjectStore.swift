@@ -48,6 +48,9 @@ final class PatchProjectStore: ObservableObject {
     init() {
         isBusy = true
         Task.detached(priority: .userInitiated) { [weak self] in
+            // MATINO X: move patches out of the shared 3105 container folder
+            // into this app's private folder, so they show up here only.
+            PatchProjectLibrary.migrateLegacyPackagesIfNeeded()
             Self.importBundledPackagesIfNeeded()
             let loadedItems = PatchProjectLibrary.load()
             await self?.finishInitialLoad(loadedItems)

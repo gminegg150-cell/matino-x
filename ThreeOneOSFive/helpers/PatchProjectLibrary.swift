@@ -37,6 +37,12 @@ struct PatchPasswordRequest: Identifiable {
 enum PatchProjectLibrary {
     private static let authorCopiesDirectoryName = ".AuthorCopies"
     private static let originsDirectoryName = ".Origins"
+    /// MATINO X: private storage folder. The original 3105 app (same bundle ID,
+    /// shared container) keeps using the legacy "PatchProjects" folder, so
+    /// files mirrored from the site appear here only, never inside 3105.
+    private static let rootDirectoryName = "MATINO_X_Patches"
+    private static let legacyRootDirectoryName = "PatchProjects"
+    private static let migrationDoneKey = "matino_x.storage_migration_v1"
 
     static func packageRootURL(fileManager: FileManager = .default) throws -> URL {
         let base = try fileManager.url(
@@ -45,9 +51,40 @@ enum PatchProjectLibrary {
             appropriateFor: nil,
             create: true
         )
-        let root = base.appendingPathComponent("PatchProjects", isDirectory: true)
+        let root = base.appendingPathComponent(rootDirectoryName, isDirectory: true)
         try fileManager.createDirectory(at: root, withIntermediateDirectories: true)
         return root
+    }
+
+    /// MATINO X: one-time migration from the shared legacy folder into this
+    /// app's private folder. Files are MOVED, never deleted, so nothing the
+    /// user added through the site is lost. After this, 3105 no longer sees
+    /// the patches because it still reads the (now empty) legacy folder.
+    static func migrateLegacyPackagesIfNeeded() {
+        let fm = FileManager.default
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: migrationDoneKey) else { return }
+        guard let base = try? fm.url(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask,
+            appropriateFor: nil,
+            create: true
+        ) else { return }
+
+        let legacy = base.appendingPathComponent(legacyRootDirectoryName, isDirectory: true)
+        let target = base.appendingPathComponent(rootDirectoryName, isDirectory: true)
+        try? fm.createDirectory(at: target, withIntermediateDirectories: true)
+
+        if let names = try? fm.contentsOfDirectory(atPath: legacy.path) {
+            for name in names {
+                let source = legacy.appendingPathComponent(name)
+                let destination = target.appendingPathComponent(name)
+                // Never overwrite a newer copy already in the private folder.
+                guard !fm.fileExists(atPath: destination.path) else { continue }
+                try? fm.moveItem(at: source, to: destination)
+            }
+        }
+        defaults.set(true, forKey: migrationDoneKey)
     }
 
     static func backupRootURL(fileManager: FileManager = .default) throws -> URL {
