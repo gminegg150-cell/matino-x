@@ -771,7 +771,6 @@ private struct PatchProjectRow: View {
             }
         }
         .padding(.vertical, 4)
-        }
     }
 
     private var rowDetail: String {
