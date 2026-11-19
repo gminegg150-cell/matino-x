@@ -48,6 +48,10 @@ final class PatchProjectStore: ObservableObject {
     init() {
         isBusy = true
         Task.detached(priority: .userInitiated) { [weak self] in
+            // MATINO X: the IPA no longer bundles .3105 files. Drop any stale
+            // copies left in Application Support by an older install so only
+            // the current site repository content is ever shown.
+            Self.clearStaleLocalPackages()
             Self.importBundledPackagesIfNeeded()
             let loadedItems = PatchProjectLibrary.load()
             await self?.finishInitialLoad(loadedItems)
@@ -254,6 +258,23 @@ final class PatchProjectStore: ObservableObject {
         removedNames.formUnion(removed)
         defaults.set(Array(removedNames), forKey: remoteRemovedKey)
         defaults.set(Array(current), forKey: remoteTrackedKey)
+    }
+
+    /// MATINO X: remove every local .3105 so a fresh install never inherits
+    /// files left behind by a previous version of the app. The repository
+    /// sync below repopulates exactly what the site currently holds.
+    private nonisolated static func clearStaleLocalPackages() {
+        let fm = FileManager.default
+        guard let root = try? PatchProjectLibrary.packageRootURL(fileManager: fm) else { return }
+        let names = (try? fm.contentsOfDirectory(atPath: root.path)) ?? []
+        for name in names where name.lowercased().hasSuffix(".3105") {
+            try? fm.removeItem(at: root.appendingPathComponent(name))
+        }
+        // Also clear the tracking keys so the next sync starts clean.
+        let defaults = UserDefaults.standard
+        defaults.removeObject(forKey: remoteTrackedKey)
+        defaults.removeObject(forKey: remoteRemovedKey)
+        defaults.removeObject(forKey: "patch.imported_bundled_files")
     }
 
     /// MATINO X: files placed in BundledFiles/ end up in the app bundle.
