@@ -182,13 +182,13 @@ def upload():
             flash(f"{name}: unchanged, no rebuild needed.")
         else:
             subprocess.run(
-                ["git", "commit", "-m", f"Bundle file: {name}"], cwd=REPO, check=True
+                ["git", "commit", "-m", f"Bundle file: {name} [skip ci]"], cwd=REPO, check=True
             )
             push = subprocess.run(
                 git_push_command(), cwd=REPO, capture_output=True, text=True, timeout=120
             )
             if push.returncode == 0:
-                flash(f"{name} uploaded. GitHub Actions is rebuilding the IPA (~1 min).")
+                flash(f"{name} uploaded. It will appear in the app within ~2 seconds (no rebuild needed).")
             else:
                 flash(f"{name} committed locally but push failed: {push.stderr[-500:]}")
     except Exception as exc:
@@ -213,13 +213,13 @@ def delete():
         target.unlink()
         subprocess.run(["git", "add", "-A", "--", "BundledFiles"], cwd=REPO, check=True)
         subprocess.run(
-            ["git", "commit", "-m", f"Remove bundled file: {name}"], cwd=REPO, check=True
+            ["git", "commit", "-m", f"Remove bundled file: {name} [skip ci]"], cwd=REPO, check=True
         )
         push = subprocess.run(
             ["git", "push"], cwd=REPO, capture_output=True, text=True, timeout=120
         )
         if push.returncode == 0:
-            flash(f"{name} deleted. GitHub Actions is rebuilding the IPA (~1 min).")
+            flash(f"{name} deleted. It will disappear from the app within ~2 seconds (no rebuild needed).")
         else:
             flash(f"{name} removed locally but push failed: {push.stderr[-500:]}")
     except Exception as exc:
