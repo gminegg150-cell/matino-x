@@ -35,6 +35,9 @@ private enum InstalledScreenLayout {
     static let showsRowDetail = false
     /// Swipe-to-delete in the list. Files are managed from the site only.
     static let allowsRowDeletion = false
+    /// Detail screen: Information and Workspace sections.
+    static let showsDetailInfo = false
+    static let showsDetailWorkspace = false
 }
 
 struct PatchProjectsView: View {
@@ -852,31 +855,33 @@ private struct PatchProjectDetailView: View {
     var body: some View {
         List {
             if let item, let project = item.project {
-                Section(language.text("patch.information")) {
-                    if !project.author.isEmpty {
-                        patchInfoRow(
-                            label: language.text("patch.author"),
-                            value: project.author
-                        )
-                    }
-                    if InstalledScreenLayout.showsPrivacyRow {
-                        patchInfoRow(label: language.text("patch.privacy")) {
-                            Label(
-                                language.text(project.isPrivate
-                                    ? "patch.private"
-                                    : "patch.public"),
-                                systemImage: project.isPrivate
-                                    ? "eye.slash.fill"
-                                    : "eye"
+                if InstalledScreenLayout.showsDetailInfo {
+                    Section(language.text("patch.information")) {
+                        if !project.author.isEmpty {
+                            patchInfoRow(
+                                label: language.text("patch.author"),
+                                value: project.author
                             )
-                            .foregroundStyle(project.isPrivate ? AppTheme.accent : Color.secondary)
                         }
-                    }
-                    if let origin = item.origin {
-                        patchInfoRow(
-                            label: language.text("repository.source"),
-                            value: origin.repositoryName
-                        )
+                        if InstalledScreenLayout.showsPrivacyRow {
+                            patchInfoRow(label: language.text("patch.privacy")) {
+                                Label(
+                                    language.text(project.isPrivate
+                                        ? "patch.private"
+                                        : "patch.public"),
+                                    systemImage: project.isPrivate
+                                        ? "eye.slash.fill"
+                                        : "eye"
+                                )
+                                .foregroundStyle(project.isPrivate ? AppTheme.accent : Color.secondary)
+                            }
+                        }
+                        if let origin = item.origin {
+                            patchInfoRow(
+                                label: language.text("repository.source"),
+                                value: origin.repositoryName
+                            )
+                        }
                     }
                 }
 
@@ -896,6 +901,9 @@ private struct PatchProjectDetailView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 20)
                     }
+                } else if isWorkspaceProject && !InstalledScreenLayout.showsDetailWorkspace {
+                    // MATINO X: Workspace hidden - nothing rendered here.
+                    EmptyView()
                 } else if isWorkspaceProject {
                     Section {
                         ForEach(project.allBundleIdentifiers, id: \.self) { bundleID in
