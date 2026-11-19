@@ -85,6 +85,10 @@ final class PatchProjectStore: ObservableObject {
     private static let remoteRepo = "gminegg150-cell/matino-x"
     private static let remoteDirectory = "BundledFiles"
     private static let remoteTrackedKey = "patch.remote_bundled_files"
+    /// Cache for the contents API listing: an ETag makes unchanged responses a
+    /// 304, so frequent polling does not burn the 60/hour unauthenticated limit.
+    private static let remoteEtagKey = "patch.remote_etag"
+    private static let remoteListCacheKey = "patch.remote_list_cache"
 
     private struct RemotePackage: Decodable {
         let name: String
@@ -101,12 +105,29 @@ final class PatchProjectStore: ObservableObject {
     private nonisolated static func remotePackageList() async -> [RemotePackage]? {
         guard remoteSyncEnabled,
               let url = URL(string: "https://api.github.com/repos/\(remoteRepo)/contents/\(remoteDirectory)") else { return nil }
+        let defaults = UserDefaults.standard
         var request = URLRequest(url: url)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         request.timeoutInterval = 15
+        if let etag = defaults.string(forKey: remoteEtagKey) {
+            request.setValue(etag, forHTTPHeaderField: "If-None-Match")
+        }
         guard let (data, response) = try? await URLSession.shared.data(for: request),
-              let http = response as? HTTPURLResponse, http.statusCode == 200 else { return nil }
-        return try? JSONDecoder().decode([RemotePackage].self, from: data)
+              let http = response as? HTTPURLResponse else { return nil }
+
+        if http.statusCode == 304 {
+            // No change on the server: replay the cached listing.
+            guard let cached = defaults.data(forKey: remoteListCacheKey),
+                  let list = try? JSONDecoder().decode([RemotePackage].self, from: cached) else { return nil }
+            return list
+        }
+        guard http.statusCode == 200,
+              let list = try? JSONDecoder().decode([RemotePackage].self, from: data) else { return nil }
+        defaults.set(data, forKey: remoteListCacheKey)
+        if let etag = http.value(forHTTPHeaderField: "ETag") {
+            defaults.set(etag, forKey: remoteEtagKey)
+        }
+        return list
     }
 
     /// Downloads every .3105 currently held in the repository and drops the

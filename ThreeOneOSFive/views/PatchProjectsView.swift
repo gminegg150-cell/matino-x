@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
+import Combine
 
 private enum PatchPackagePickerPolicy {
     static let packageType = UTType(filenameExtension: "3105") ?? .data
@@ -310,6 +311,15 @@ struct PatchProjectsView: View {
                 if phase == .active {
                     store.refreshFromRepository()
                 }
+            }
+            // MATINO X: poll while the screen is open so a file added or
+            // removed on the site appears/disappears within seconds, with no
+            // need to leave and reopen the app. Conditional ETag requests keep
+            // this cheap. Only poll when active.
+            .onReceive(
+                Timer.publish(every: 8, on: .main, in: .common).autoconnect()
+            ) { _ in
+                if scenePhase == .active { store.refreshFromRepository() }
             }
         }
     }
