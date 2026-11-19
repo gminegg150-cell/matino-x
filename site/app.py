@@ -287,6 +287,78 @@ def delete():
     return redirect(url_for("index"))
 
 
+@app.route("/rename", methods=["POST"])
+def rename():
+    if not logged_in():
+        return redirect(url_for("index"))
+
+    old = safe_name(request.form.get("old_name", ""))
+    raw_new = request.form.get("new_name", "").strip()
+    if old in {".gitkeep", "comments.json"}:
+        flash("This file cannot be renamed.")
+        return redirect(url_for("index"))
+
+    source = DROP_DIR / old
+    if not source.is_file():
+        flash(f"{old}: not found.")
+        return redirect(url_for("index"))
+
+    import re
+    # Build the new name the same way as upload: strip any category/variant
+    # prefix, then re-add the chosen category + variant tokens.
+    category = request.form.get("category", "").strip().upper()
+    variant = request.form.get("variant", "").strip().upper()
+    valid_category = category if category in {"AIM", "HOLOGRAM", "SKIN"} else None
+    valid_variant = variant if variant in {"NORMAL", "MAX"} else None
+
+    clean = re.sub(r"^(AIM|HOLOGRAM|SKIN)_+", "", raw_new, flags=re.IGNORECASE)
+    clean = re.sub(r"^MAX_+", "", clean, flags=re.IGNORECASE)
+    clean = re.sub(r"^NORMAL_+", "", clean, flags=re.IGNORECASE)
+    clean = safe_name(clean) or "file"
+    if not clean.lower().endswith(".3105"):
+        clean += ".3105"
+
+    tokens = []
+    if valid_category:
+        tokens.append(valid_category)
+    tokens.append(valid_variant or "NORMAL")
+    tokens.append(clean)
+    new = safe_name("_".join(tokens))
+
+    if new == old:
+        flash("Name unchanged.")
+        return redirect(url_for("index"))
+    destination = DROP_DIR / new
+    if destination.exists():
+        flash(f"{new}: already exists.")
+        return redirect(url_for("index"))
+
+    try:
+        source.rename(destination)
+        comments = load_comments()
+        comment = comments.pop(old, None)
+        comments.pop(old.rsplit(".", 1)[0], None)
+        if comment:
+            comments[new] = comment
+        save_comments(comments)
+        subprocess.run(["git", "add", "-A", "--", "BundledFiles"], cwd=REPO, check=True)
+        subprocess.run(
+            ["git", "commit", "-m", f"Rename {old} -> {new} [skip ci]"], cwd=REPO, check=True
+        )
+        push = subprocess.run(
+            git_push_command(), cwd=REPO, capture_output=True, text=True, timeout=120
+        )
+        if push.returncode == 0:
+            flash(f"Renamed to {new}. The app will update within ~2 seconds.")
+        else:
+            flash(f"Renamed locally but push failed: {push.stderr[-500:]}")
+    except Exception as exc:
+        flash(f"Rename error: {exc}")
+
+    time.sleep(0.2)
+    return redirect(url_for("index"))
+
+
 @app.route("/logout", methods=["POST"])
 def logout():
     session.clear()
