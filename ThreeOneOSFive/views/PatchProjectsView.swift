@@ -55,8 +55,13 @@ struct PatchProjectsView: View {
     private var filteredItems: [PatchLibraryItem] {
         let base: [PatchLibraryItem]
         if let token = categoryFilter {
+            // MATINO X: match only the category prefix. A file named
+            // "HOLOGRAM_AIM_... " belongs to HOLOGRAM, not AIM, so checking
+            // anywhere in the name would leak it into other category tabs.
             base = store.items.filter {
-                $0.packageURL.lastPathComponent.localizedCaseInsensitiveContains(token)
+                $0.packageURL.lastPathComponent
+                    .lowercased()
+                    .hasPrefix(token.lowercased() + "_")
             }
         } else {
             base = store.items
