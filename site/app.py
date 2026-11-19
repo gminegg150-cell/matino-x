@@ -216,7 +216,7 @@ def delete():
             ["git", "commit", "-m", f"Remove bundled file: {name} [skip ci]"], cwd=REPO, check=True
         )
         push = subprocess.run(
-            ["git", "push"], cwd=REPO, capture_output=True, text=True, timeout=120
+            git_push_command(), cwd=REPO, capture_output=True, text=True, timeout=120
         )
         if push.returncode == 0:
             flash(f"{name} deleted. It will disappear from the app within ~2 seconds (no rebuild needed).")
