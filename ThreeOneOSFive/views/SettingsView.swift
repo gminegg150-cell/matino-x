@@ -1,5 +1,13 @@
 import SwiftUI
 
+/// MATINO X: switches that hide non-essential sections in Settings.
+private enum SettingsLayout {
+    static let showsFeatures = false
+    static let showsWallpaperReset = false
+    static let showsSocialMedia = false
+    static let showsCredits = false
+}
+
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.appLanguage) private var language
@@ -36,23 +44,26 @@ struct SettingsView: View {
                     .labelsHidden()
                 }
 
-                Section {
-                    Toggle(isOn: $cleanerEnabled) {
-                        Label(language.text("tab.cleaner"), systemImage: "sparkles")
+                if SettingsLayout.showsFeatures {
+                    Section {
+                        Toggle(isOn: $cleanerEnabled) {
+                            Label(language.text("tab.cleaner"), systemImage: "sparkles")
+                        }
+                        Toggle(isOn: $developerModeEnabled) {
+                            Label(
+                                language.text("settings.developer_mode"),
+                                systemImage: "hammer.fill"
+                            )
+                        }
+                    } header: {
+                        Text(language.text("dashboard.features"))
+                    } footer: {
+                        Text(language.text("settings.developer_mode_footer"))
                     }
-                    Toggle(isOn: $developerModeEnabled) {
-                        Label(
-                            language.text("settings.developer_mode"),
-                            systemImage: "hammer.fill"
-                        )
-                    }
-                } header: {
-                    Text(language.text("dashboard.features"))
-                } footer: {
-                    Text(language.text("settings.developer_mode_footer"))
                 }
 
-                if WallpaperFeatureSupportPolicy.isSupported(
+                if SettingsLayout.showsWallpaperReset,
+                   WallpaperFeatureSupportPolicy.isSupported(
                     major: AppInfo.versionTuple.major
                 ) {
                     Section {
@@ -102,45 +113,49 @@ struct SettingsView: View {
                     Text(language.text("settings.supported_versions_footer"))
                 }
 
-                Section(language.text("settings.social_media")) {
-                    creditsRow(
-                        name: "GitHub",
-                        role: language.text("social.github_role"),
-                        url: "https://github.com/YangJiiii/3105"
-                    )
-                    creditsRow(
-                        name: "Cộng Đồng IOSVN",
-                        role: language.text("social.iosvn_role"),
-                        url: "https://t.me/ioscrackvn"
-                    )
+                if SettingsLayout.showsSocialMedia {
+                    Section(language.text("settings.social_media")) {
+                        creditsRow(
+                            name: "GitHub",
+                            role: language.text("social.github_role"),
+                            url: "https://github.com/YangJiiii/3105"
+                        )
+                        creditsRow(
+                            name: "Cộng Đồng IOSVN",
+                            role: language.text("social.iosvn_role"),
+                            url: "https://t.me/ioscrackvn"
+                        )
+                    }
                 }
 
-                Section(language.text("settings.credits")) {
-                    creditsRow(
-                        name: "YangJiii",
-                        role: language.text("credit.yangjiii"),
-                        url: "https://x.com/duongduong0908"
-                    )
-                    creditsRow(
-                        name: "0xjohnnydev",
-                        role: language.text("credit.filzaslop"),
-                        url: "https://github.com/0xjohnnydev/FilzaSlop"
-                    )
-                    creditsRow(
-                        name: "LeminLimez",
-                        role: language.text("credit.pocket_poster"),
-                        url: "https://github.com/leminlimez/Pocket-Poster"
-                    )
-                    creditsRow(
-                        name: "CrazyMind90",
-                        role: language.text("credit.sandbox_escape"),
-                        url: "https://github.com/CrazyMind90"
-                    )
-                    creditsRow(
-                        name: "forcequitOS",
-                        role: language.text("credit.forcequit"),
-                        url: "https://github.com/forcequitOS"
-                    )
+                if SettingsLayout.showsCredits {
+                    Section(language.text("settings.credits")) {
+                        creditsRow(
+                            name: "YangJiii",
+                            role: language.text("credit.yangjiii"),
+                            url: "https://x.com/duongduong0908"
+                        )
+                        creditsRow(
+                            name: "0xjohnnydev",
+                            role: language.text("credit.filzaslop"),
+                            url: "https://github.com/0xjohnnydev/FilzaSlop"
+                        )
+                        creditsRow(
+                            name: "LeminLimez",
+                            role: language.text("credit.pocket_poster"),
+                            url: "https://github.com/leminlimez/Pocket-Poster"
+                        )
+                        creditsRow(
+                            name: "CrazyMind90",
+                            role: language.text("credit.sandbox_escape"),
+                            url: "https://github.com/CrazyMind90"
+                        )
+                        creditsRow(
+                            name: "forcequitOS",
+                            role: language.text("credit.forcequit"),
+                            url: "https://github.com/forcequitOS"
+                        )
+                    }
                 }
             }
             .tint(AppTheme.accent)
