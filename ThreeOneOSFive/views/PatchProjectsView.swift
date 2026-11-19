@@ -271,7 +271,7 @@ struct PatchProjectsView: View {
                         }
                     }
                 }
-                .listStyle(InstalledScreenLayout.usesReferenceListStyle ? .plain : .insetGrouped)
+                .listStyle(.plain)
             }
             .navigationTitle(categoryTitle ?? language.text("tab.installed"))
             .navigationBarTitleDisplayMode(.inline)
