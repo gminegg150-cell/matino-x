@@ -303,27 +303,11 @@ def rename():
         flash(f"{old}: not found.")
         return redirect(url_for("index"))
 
-    import re
-    # Build the new name the same way as upload: strip any category/variant
-    # prefix, then re-add the chosen category + variant tokens.
-    category = request.form.get("category", "").strip().upper()
-    variant = request.form.get("variant", "").strip().upper()
-    valid_category = category if category in {"AIM", "HOLOGRAM", "SKIN"} else None
-    valid_variant = variant if variant in {"NORMAL", "MAX"} else None
-
-    clean = re.sub(r"^(AIM|HOLOGRAM|SKIN)_+", "", raw_new, flags=re.IGNORECASE)
-    clean = re.sub(r"^MAX_+", "", clean, flags=re.IGNORECASE)
-    clean = re.sub(r"^NORMAL_+", "", clean, flags=re.IGNORECASE)
-    clean = safe_name(clean) or "file"
-    if not clean.lower().endswith(".3105"):
-        clean += ".3105"
-
-    tokens = []
-    if valid_category:
-        tokens.append(valid_category)
-    tokens.append(valid_variant or "NORMAL")
-    tokens.append(clean)
-    new = safe_name("_".join(tokens))
+    # MATINO X: plain rename - use exactly the name the user typed. No
+    # category/variant re-prefixing (that was making the name snap back).
+    new = safe_name(raw_new) or "file"
+    if not new.lower().endswith(".3105"):
+        new += ".3105"
 
     if new == old:
         flash("Name unchanged.")

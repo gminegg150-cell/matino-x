@@ -93,18 +93,7 @@
             <form method="post" action="{{ url_for('rename') }}" class="del" style="display:flex; gap:4px;">
               <input type="hidden" name="old_name" value="{{ f }}">
               <input type="text" name="new_name" value="{{ f }}" maxlength="120"
-                     style="width:130px; padding:5px; background:#0b0b0b; color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:8px;">
-              <select name="category" style="width:auto; padding:5px; background:#0b0b0b; color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:8px;">
-                <option value="">cat</option>
-                <option value="AIM">AIM</option>
-                <option value="HOLOGRAM">HOL</option>
-                <option value="SKIN">SKIN</option>
-              </select>
-              <select name="variant" style="width:auto; padding:5px; background:#0b0b0b; color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:8px;">
-                <option value="">var</option>
-                <option value="NORMAL">N</option>
-                <option value="MAX">MAX</option>
-              </select>
+                     style="width:150px; padding:5px; background:#0b0b0b; color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:8px;">
               <button type="submit" title="Rename" style="padding:5px 10px; font-size:12px;">Rename</button>
             </form>
             <form method="post" action="{{ url_for('delete') }}" class="del">
