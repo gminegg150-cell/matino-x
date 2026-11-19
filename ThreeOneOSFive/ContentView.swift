@@ -97,8 +97,12 @@ struct ContentView: View {
             List {
                 ForEach(featureVisibility.visibleSections) { section in
                     Button {
-                        withAnimation(.easeInOut(duration: 0.18)) {
-                            tabNavigation.select(section.rawValue)
+                        if section == .settings {
+                            showSettings = true
+                        } else {
+                            withAnimation(.easeInOut(duration: 0.18)) {
+                                tabNavigation.select(section.rawValue)
+                            }
                         }
                     } label: {
                         Label(section.displayTitle(language: language), systemImage: section.systemImage)
@@ -153,6 +157,10 @@ struct ContentView: View {
                 onOpenSettings: openSettings,
                 onOpenLogs: openLogs
             )
+        case .settings:
+            // MATINO X: the bottom-bar Settings tab opens the sheet; the tab
+            // itself stays on whichever section was active before.
+            EmptyView()
         case .files:
             AppDataBrowserView(
                 tabSession: filesTabSession,
@@ -170,7 +178,14 @@ struct ContentView: View {
     private var tabSelection: Binding<Int> {
         Binding(
             get: { tabNavigation.selectedTab },
-            set: { tabNavigation.select($0) }
+            set: { newValue in
+                if newValue == AppSection.settings.rawValue {
+                    // Open Settings and snap back to the previous section.
+                    showSettings = true
+                } else {
+                    tabNavigation.select(newValue)
+                }
+            }
         )
     }
 
@@ -245,6 +260,7 @@ private extension AppSection {
         case .aim: return "tab.aim"
         case .hologram: return "tab.hologram"
         case .skin: return "tab.skin"
+        case .settings: return "settings.title"
         }
     }
 
@@ -265,6 +281,7 @@ private extension AppSection {
         case .aim: return "scope"
         case .hologram: return "cube.transparent.fill"
         case .skin: return "tshirt.fill"
+        case .settings: return "gearshape.fill"
         }
     }
 }

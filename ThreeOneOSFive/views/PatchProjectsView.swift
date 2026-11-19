@@ -154,12 +154,8 @@ struct PatchProjectsView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                HStack {
-                    Spacer(minLength: 0)
-                    settingsGearButton
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
+                // MATINO X: Settings moved to the bottom tab bar; the top
+                // gear button is hidden (see settingsGearButton).
                 if InstalledScreenLayout.showsSearchField {
                     AppSearchField(
                         text: $searchText,

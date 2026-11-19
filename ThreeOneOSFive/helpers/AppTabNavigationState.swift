@@ -12,6 +12,9 @@ enum AppSection: Int, CaseIterable, Identifiable {
     case aim
     case hologram
     case skin
+    /// MATINO X: bottom-bar Settings entry. A distinct raw value keeps it out
+    /// of the legacy simulator argument indices.
+    case settings = 99
 
     var id: Int { rawValue }
 
@@ -82,6 +85,8 @@ struct FeatureVisibility: Equatable {
         switch section {
         case .aim, .hologram, .skin:
             return categoryTabsEnabled
+        case .settings:
+            return true
         case .installed:
             // MATINO X: Installed is replaced by the three category tabs.
             // It stays available only as the fallback when category tabs are
