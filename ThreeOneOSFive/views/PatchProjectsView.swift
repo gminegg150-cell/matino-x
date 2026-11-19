@@ -654,6 +654,14 @@ private struct PatchProjectRow: View {
                     .font(.body.weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
+                // MATINO X: comment from the site, shown under the file name.
+                if let comment = PatchProjectStore.comment(for: item.packageURL.lastPathComponent),
+                   !comment.isEmpty {
+                    Text(comment)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
                 if InstalledScreenLayout.showsKindBadge {
                     InstalledContentKindBadge(kind: .patch, language: language)
                 }

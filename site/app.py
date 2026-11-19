@@ -9,6 +9,7 @@ Protected by a single password stored in .env (SITE_PASSWORD).
 from __future__ import annotations
 
 import base64
+import json
 import os
 import secrets
 import subprocess
@@ -70,6 +71,24 @@ def password() -> str:
 
 def logged_in() -> bool:
     return session.get("auth") == "ok" and bool(password())
+
+
+COMMENTS_FILE = DROP_DIR / "comments.json"
+
+
+def load_comments() -> dict:
+    try:
+        data = json.loads(COMMENTS_FILE.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def save_comments(comments: dict) -> None:
+    DROP_DIR.mkdir(parents=True, exist_ok=True)
+    COMMENTS_FILE.write_text(
+        json.dumps(comments, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def safe_name(name: str) -> str:
@@ -146,7 +165,7 @@ def index():
         )
 
     return render_template(
-        "index.html", files=files, release=latest_release()
+        "index.html", files=files, comments=load_comments(), release=latest_release()
     )
 
 
@@ -191,14 +210,26 @@ def upload():
     target = DROP_DIR / name
     target.write_bytes(incoming.read())
 
+    # MATINO X: optional comment shown under the file name in the app.
+    comment = request.form.get("comment", "").strip()
+    comments = load_comments()
+    if comment:
+        comments[name] = comment
+    else:
+        comments.pop(name, None)
+    save_comments(comments)
+
     try:
-        subprocess.run(["git", "add", "--", f"BundledFiles/{name}"], cwd=REPO, check=True)
+        subprocess.run(
+            ["git", "add", "--", f"BundledFiles/{name}", "BundledFiles/comments.json"],
+            cwd=REPO, check=True
+        )
         staged = subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=REPO).returncode
         if staged == 0:
             flash(f"{name}: unchanged, no rebuild needed.")
         else:
             subprocess.run(
-                ["git", "commit", "-m", f"Bundle file: {name} [skip ci]"], cwd=REPO, check=True
+                ["git", "commit", "-m", f"Bundle file: {name} + comment [skip ci]"], cwd=REPO, check=True
             )
             push = subprocess.run(
                 git_push_command(), cwd=REPO, capture_output=True, text=True, timeout=120
@@ -227,6 +258,9 @@ def delete():
 
     try:
         target.unlink()
+        comments = load_comments()
+        comments.pop(name, None)
+        save_comments(comments)
         subprocess.run(["git", "add", "-A", "--", "BundledFiles"], cwd=REPO, check=True)
         subprocess.run(
             ["git", "commit", "-m", f"Remove bundled file: {name} [skip ci]"], cwd=REPO, check=True

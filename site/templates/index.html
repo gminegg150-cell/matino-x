@@ -58,6 +58,9 @@
         <option value="NORMAL">FREE FIRE NORMAL</option>
         <option value="MAX">FREE FIRE MAX</option>
       </select>
+      <label style="margin-top:6px">Comment (optional, shown under the file name)</label>
+      <input type="text" name="comment" maxlength="200" placeholder="e.g. My description"
+             style="width:100%; padding:10px; margin-bottom:14px; background:#0b0b0b; color:#fff; border:1px solid rgba(255,255,255,.25); border-radius:10px;">
       <button type="submit">Upload</button>
     </form>
   </div>
@@ -80,7 +83,12 @@
       <ul>
         {% for f in files %}
         <li>
-          <span class="fname">{{ f }}</span>
+          <span class="fname">
+            {{ f }}
+            {% if comments.get(f) %}
+              <div style="color:#888; font-size:12px; margin-top:3px;">{{ comments.get(f) }}</div>
+            {% endif %}
+          </span>
           <form method="post" action="{{ url_for('delete') }}" class="del">
             <input type="hidden" name="name" value="{{ f }}">
             <button type="submit" title="Delete">Delete</button>

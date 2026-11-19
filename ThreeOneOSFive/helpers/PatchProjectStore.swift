@@ -51,6 +51,7 @@ final class PatchProjectStore: ObservableObject {
             Self.importBundledPackagesIfNeeded()
             let loadedItems = PatchProjectLibrary.load()
             await self?.finishInitialLoad(loadedItems)
+            await Self.syncCommentsFromGitHub()
             await Self.syncPackagesFromGitHub()
             await self?.markRepositorySynced()
             await self?.reload()
@@ -73,6 +74,7 @@ final class PatchProjectStore: ObservableObject {
         }
         lastRepositorySync = Date()
         Task.detached(priority: .utility) { [weak self] in
+            await Self.syncCommentsFromGitHub()
             await Self.syncPackagesFromGitHub()
             await self?.reload()
         }
@@ -89,6 +91,9 @@ final class PatchProjectStore: ObservableObject {
     /// 304, so frequent polling does not burn the 60/hour unauthenticated limit.
     private static let remoteEtagKey = "patch.remote_etag"
     private static let remoteListCacheKey = "patch.remote_list_cache"
+    /// MATINO X: comments file mirrored from BundledFiles/comments.json.
+    private static let remoteCommentsKey = "patch.remote_comments"
+    private static let remoteCommentsURL = "https://raw.githubusercontent.com/\(remoteRepo)/main/\(remoteDirectory)/comments.json"
 
     private struct RemotePackage: Decodable {
         let name: String
@@ -128,6 +133,25 @@ final class PatchProjectStore: ObservableObject {
             defaults.set(etag, forKey: remoteEtagKey)
         }
         return list
+    }
+
+    /// MATINO X: fetch the comments map (file name -> description) so the
+    /// Installed rows can show a line under each file name.
+    private nonisolated static func syncCommentsFromGitHub() async {
+        guard remoteSyncEnabled,
+              let url = URL(string: remoteCommentsURL) else { return }
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse, http.statusCode == 200 else { return }
+        guard let map = try? JSONDecoder().decode([String: String].self, from: data) else { return }
+        UserDefaults.standard.set(map, forKey: remoteCommentsKey)
+    }
+
+    static func comment(for fileName: String) -> String? {
+        let map = UserDefaults.standard.dictionary(forKey: remoteCommentsKey) as? [String: String]
+        return map?[fileName]
     }
 
     /// Downloads every .3105 currently held in the repository and drops the
