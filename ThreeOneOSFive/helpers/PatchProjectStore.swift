@@ -166,10 +166,16 @@ final class PatchProjectStore: ObservableObject {
             try? data.write(to: destination, options: .atomic)
         }
 
-        // Mirror deletions. The repository is the source of truth: anything we
-        // synced before that the repository no longer holds is removed from
-        // Installed, even if the installed IPA happens to bundle a copy.
-        let removed = previouslyTracked.subtracting(current)
+        // Mirror deletions. The repository is the source of truth. Remove any
+        // synced file the repository no longer holds. We also treat every
+        // bundle-sourced .3105 in the library as synced, so a file deleted on
+        // the site before a previous sync recorded it is still removed.
+        let libraryNames = Set(
+            ((try? fm.contentsOfDirectory(atPath: root.path)) ?? [])
+                .filter { $0.lowercased().hasSuffix(".3105") }
+        )
+        let synced = previouslyTracked.union(libraryNames)
+        let removed = synced.subtracting(current)
         for name in removed {
             let stale = root.appendingPathComponent(name)
             if fm.fileExists(atPath: stale.path) {
