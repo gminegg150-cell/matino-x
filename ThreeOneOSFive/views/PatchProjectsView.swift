@@ -26,6 +26,10 @@ private enum InstalledScreenLayout {
     static let showsSearchField = false
     /// The "Open Logs" item in the settings menu.
     static let showsOpenLogs = false
+    /// Detail-screen rows: Privacy, Password, Export .3105.
+    static let showsPrivacyRow = false
+    static let showsPasswordSection = false
+    static let showsExportButton = false
 }
 
 struct PatchProjectsView: View {
@@ -827,16 +831,18 @@ private struct PatchProjectDetailView: View {
                             value: project.author
                         )
                     }
-                    patchInfoRow(label: language.text("patch.privacy")) {
-                        Label(
-                            language.text(project.isPrivate
-                                ? "patch.private"
-                                : "patch.public"),
-                            systemImage: project.isPrivate
-                                ? "eye.slash.fill"
-                                : "eye"
-                        )
-                        .foregroundStyle(project.isPrivate ? AppTheme.accent : Color.secondary)
+                    if InstalledScreenLayout.showsPrivacyRow {
+                        patchInfoRow(label: language.text("patch.privacy")) {
+                            Label(
+                                language.text(project.isPrivate
+                                    ? "patch.private"
+                                    : "patch.public"),
+                                systemImage: project.isPrivate
+                                    ? "eye.slash.fill"
+                                    : "eye"
+                            )
+                            .foregroundStyle(project.isPrivate ? AppTheme.accent : Color.secondary)
+                        }
                     }
                     if let origin = item.origin {
                         patchInfoRow(
@@ -923,15 +929,17 @@ private struct PatchProjectDetailView: View {
                     }
                 }
 
-                Section(language.text("patch.password")) {
-                    HStack(spacing: 12) {
-                        Image(systemName: item.summary.isPasswordProtected ? "lock.fill" : "lock.open")
-                            .foregroundStyle(AppTheme.accent)
-                            .frame(width: 24)
-                        Text(language.text(item.summary.isPasswordProtected
-                            ? "patch.password_locked"
-                            : "patch.no_password"))
-                            .font(.subheadline)
+                if InstalledScreenLayout.showsPasswordSection {
+                    Section(language.text("patch.password")) {
+                        HStack(spacing: 12) {
+                            Image(systemName: item.summary.isPasswordProtected ? "lock.fill" : "lock.open")
+                                .foregroundStyle(AppTheme.accent)
+                                .frame(width: 24)
+                            Text(language.text(item.summary.isPasswordProtected
+                                ? "patch.password_locked"
+                                : "patch.no_password"))
+                                .font(.subheadline)
+                        }
                     }
                 }
 
@@ -959,10 +967,12 @@ private struct PatchProjectDetailView: View {
                         .disabled(isWorking)
                     }
 
-                    Button(action: prepareExport) {
-                        actionLabel("patch.export", systemImage: "square.and.arrow.up")
+                    if InstalledScreenLayout.showsExportButton {
+                        Button(action: prepareExport) {
+                            actionLabel("patch.export", systemImage: "square.and.arrow.up")
+                        }
+                        .disabled(isWorking)
                     }
-                    .disabled(isWorking)
                 } footer: {
                     Text(language.text("patch.apply_footer"))
                 }
