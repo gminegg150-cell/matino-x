@@ -688,7 +688,7 @@ private struct PatchProjectRow: View {
     /// MATINO X: reference-style row - plain text, no card, no icon:
     ///   AIM DRAG
     ///   FREE FIRE • NORMAL
-    ///   SAFE
+    ///   (comment from the site, if any)
     private var referenceRow: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(PatchProjectStore.displayName(for: item.packageURL.lastPathComponent)
@@ -699,9 +699,6 @@ private struct PatchProjectRow: View {
             Text(variantLine)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(.secondary)
-            Text("SAFE")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
             if let comment = PatchProjectStore.comment(for: item.packageURL.lastPathComponent),
                !comment.isEmpty {
                 Text(comment)
@@ -710,6 +707,7 @@ private struct PatchProjectRow: View {
             }
         }
         .padding(.vertical, 6)
+        .listRowSeparator(.hidden)
     }
 
     private var variantLine: String {
