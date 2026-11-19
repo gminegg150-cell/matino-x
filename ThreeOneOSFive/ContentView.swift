@@ -158,9 +158,14 @@ struct ContentView: View {
                 onOpenLogs: openLogs
             )
         case .settings:
-            // MATINO X: the bottom-bar Settings tab opens the sheet; the tab
-            // itself stays on whichever section was active before.
-            EmptyView()
+            // MATINO X: the bottom-bar Settings tab opens the sheet. It needs
+            // a real view so TabView does not drop the tab from the bar.
+            PatchProjectsView(
+                categoryFilter: AppSection.aim.packageFilterToken,
+                categoryTitle: AppSection.aim.categoryTabTitle,
+                onOpenSettings: openSettings,
+                onOpenLogs: openLogs
+            )
         case .files:
             AppDataBrowserView(
                 tabSession: filesTabSession,
