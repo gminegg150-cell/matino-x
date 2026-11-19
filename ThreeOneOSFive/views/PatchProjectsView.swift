@@ -380,8 +380,10 @@ struct PatchProjectsView: View {
     private func variantButton(title: String, value: Int) -> some View {
         let selected = gameVariant == value
         return Button {
+            // MATINO X: keep exactly one variant selected. Tapping twice must
+            // never clear the filter, otherwise MAX and NORMAL files mix.
             withAnimation(.easeInOut(duration: 0.15)) {
-                gameVariant = selected ? nil : value
+                gameVariant = value
             }
         } label: {
             Text(title)
