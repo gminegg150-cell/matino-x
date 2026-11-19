@@ -161,7 +161,7 @@ def index():
     if DROP_DIR.is_dir():
         files = sorted(
             f.name for f in DROP_DIR.iterdir()
-            if f.is_file() and f.name != ".gitkeep"
+            if f.is_file() and f.name not in {".gitkeep", "comments.json"}
         )
 
     return render_template(
@@ -255,6 +255,9 @@ def delete():
         return redirect(url_for("index"))
 
     name = safe_name(request.form.get("name", ""))
+    if name in {".gitkeep", "comments.json"}:
+        flash("This file cannot be deleted.")
+        return redirect(url_for("index"))
     target = DROP_DIR / name
     if not target.is_file():
         flash(f"{name}: not found.")
