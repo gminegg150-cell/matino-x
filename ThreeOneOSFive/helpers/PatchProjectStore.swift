@@ -139,7 +139,13 @@ final class PatchProjectStore: ObservableObject {
     /// Installed rows can show a line under each file name.
     private nonisolated static func syncCommentsFromGitHub() async {
         guard remoteSyncEnabled,
-              let url = URL(string: remoteCommentsURL) else { return }
+              var components = URLComponents(string: remoteCommentsURL) else { return }
+        // Cache-buster: raw.githubusercontent is served by a CDN that can keep
+        // a stale comments.json for a while; a changing query forces fresh bytes.
+        components.queryItems = [URLQueryItem(
+            name: "t", value: String(Int(Date().timeIntervalSince1970))
+        )]
+        guard let url = components.url else { return }
         var request = URLRequest(url: url)
         request.timeoutInterval = 10
         request.cachePolicy = .reloadIgnoringLocalCacheData
