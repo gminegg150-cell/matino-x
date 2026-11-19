@@ -69,12 +69,20 @@ struct PatchProjectsView: View {
         } else {
             base = store.items
         }
-        // MATINO X: game-variant filter. A file name containing "MAX" is a
-        // FREE FIRE MAX package; everything else is FREE FIRE (normal).
+        // MATINO X: game-variant filter uses an explicit prefix token. A file
+        // in MAX never appears in NORMAL: after the optional category prefix,
+        // the name starts with either MAX_ or NORMAL_. Files with no token are
+        // treated as NORMAL so they are never shown as MAX.
         let variantFiltered: [PatchLibraryItem]
         if let variant = gameVariant {
             variantFiltered = base.filter { item in
-                let isMax = item.packageURL.lastPathComponent.localizedCaseInsensitiveContains("max")
+                let name = item.packageURL.lastPathComponent.lowercased()
+                let afterCategory = categoryFilter.map { token in
+                    name.hasPrefix(token.lowercased() + "_")
+                        ? String(name.dropFirst(token.count + 1))
+                        : name
+                } ?? name
+                let isMax = afterCategory.hasPrefix("max_")
                 return variant == 1 ? isMax : !isMax
             }
         } else {

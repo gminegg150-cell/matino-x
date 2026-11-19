@@ -181,8 +181,9 @@ def upload():
     tokens = []
     if valid_category:
         tokens.append(valid_category)
-    if valid_variant == "MAX":
-        tokens.append("MAX")
+    # Always encode an explicit variant so a MAX file can never leak into the
+    # NORMAL tab (and vice versa). Unknown/omitted variant = NORMAL.
+    tokens.append(valid_variant or "NORMAL")
     tokens.append(clean)
     name = safe_name("_".join(tokens))
 
