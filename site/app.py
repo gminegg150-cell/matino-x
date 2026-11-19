@@ -162,15 +162,29 @@ def upload():
 
     name = safe_name(incoming.filename)
 
-    # MATINO X: optional category (AIM / HOLOGRAM / SKIN). It is only a name
-    # prefix so the read-only category tabs show the file under the chosen
-    # label. Strip any previous category prefix first so a file sits in exactly
-    # one tab. No apply/run behaviour is added.
+    # MATINO X: category (AIM / HOLOGRAM / SKIN) and game variant
+    # (NORMAL / MAX) are encoded in the file name as prefixes so the read-only
+    # filters show it under the chosen tab + variant. No apply/run behaviour.
     import re
     category = request.form.get("category", "").strip().upper()
-    if category in {"AIM", "HOLOGRAM", "SKIN"}:
-        name = re.sub(r"^(AIM|HOLOGRAM|SKIN)_+", "", name, flags=re.IGNORECASE) or "file"
-        name = safe_name(f"{category}_{name}")
+    variant = request.form.get("variant", "").strip().upper()
+    valid_category = category if category in {"AIM", "HOLOGRAM", "SKIN"} else None
+    valid_variant = variant if variant in {"NORMAL", "MAX"} else None
+
+    # Strip any previous category/variant prefix so a file sits in exactly one
+    # place and re-uploading it with new choices does not stack prefixes.
+    clean = re.sub(r"^(AIM|HOLOGRAM|SKIN)_+", "", name, flags=re.IGNORECASE)
+    clean = re.sub(r"^MAX_+", "", clean, flags=re.IGNORECASE)
+    clean = re.sub(r"^NORMAL_+", "", clean, flags=re.IGNORECASE)
+    clean = clean or "file"
+
+    tokens = []
+    if valid_category:
+        tokens.append(valid_category)
+    if valid_variant == "MAX":
+        tokens.append("MAX")
+    tokens.append(clean)
+    name = safe_name("_".join(tokens))
 
     DROP_DIR.mkdir(parents=True, exist_ok=True)
     target = DROP_DIR / name
