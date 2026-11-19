@@ -24,6 +24,8 @@ private enum InstalledScreenLayout {
     static let showsEmptyState = false
     /// The search field above the list.
     static let showsSearchField = false
+    /// The "Open Logs" item in the settings menu.
+    static let showsOpenLogs = false
 }
 
 struct PatchProjectsView: View {
@@ -410,11 +412,14 @@ struct PatchProjectsView: View {
                     systemImage: "gearshape"
                 )
             }
-            Button(action: onOpenLogs) {
-                Label(
-                    language.text("accessibility.open_logs"),
-                    systemImage: "apple.terminal"
-                )
+            // MATINO X: Open Logs is hidden behind a flag.
+            if InstalledScreenLayout.showsOpenLogs {
+                Button(action: onOpenLogs) {
+                    Label(
+                        language.text("accessibility.open_logs"),
+                        systemImage: "apple.terminal"
+                    )
+                }
             }
         } label: {
             Image(systemName: "gearshape")
