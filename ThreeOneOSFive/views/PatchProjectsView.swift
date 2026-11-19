@@ -38,6 +38,10 @@ private enum InstalledScreenLayout {
     /// Detail screen: Information and Workspace sections.
     static let showsDetailInfo = false
     static let showsDetailWorkspace = false
+    /// Game-variant segmented selector. Hidden = all NORMAL/MAX shown together.
+    static let showsGameVariantSelector = false
+    /// Static "SELECT PATCH" label on the right of each patch row.
+    static let showsSelectPatchLabel = true
 }
 
 struct PatchProjectsView: View {
@@ -88,7 +92,7 @@ struct PatchProjectsView: View {
         // the name starts with either MAX_ or NORMAL_. Files with no token are
         // treated as NORMAL so they are never shown as MAX.
         let variantFiltered: [PatchLibraryItem]
-        if let variant = gameVariant {
+        if let variant = gameVariant, InstalledScreenLayout.showsGameVariantSelector {
             variantFiltered = base.filter { item in
                 let name = item.packageURL.lastPathComponent.lowercased()
                 let afterCategory = categoryFilter.map { token in
@@ -177,7 +181,7 @@ struct PatchProjectsView: View {
                     Divider()
                 }
                 List {
-                    if categoryFilter != nil {
+                    if InstalledScreenLayout.showsGameVariantSelector && categoryFilter != nil {
                         gameVariantSelector
                             .listRowSeparator(.hidden)
                     }
@@ -683,6 +687,12 @@ private struct PatchProjectRow: View {
                 }
             }
             Spacer()
+            // MATINO X: static label only - no apply/run behaviour.
+            if InstalledScreenLayout.showsSelectPatchLabel {
+                Text("SELECT PATCH")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
             if item.summary.isPasswordProtected {
                 Image(systemName: "key.fill")
                     .font(.caption)
