@@ -2,6 +2,7 @@ import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 import Combine
+import AVFoundation
 
 private enum PatchPackagePickerPolicy {
     static let packageType = UTType(filenameExtension: "3105") ?? .data
@@ -911,6 +912,8 @@ private struct PatchProjectDetailView: View {
     @State private var isWorking = false
     @State private var actionAlert: PatchStoreAlert?
     @State private var shareRequest: PatchShareRequest?
+    /// MATINO X: audio played instead of the "Done" alert after a successful apply.
+    @State private var successAudioPlayer: AVAudioPlayer?
 
     private var item: PatchLibraryItem? {
         store.items.first(where: { $0.id == projectID })
@@ -1240,6 +1243,20 @@ private struct PatchProjectDetailView: View {
         }
     }
 
+    /// MATINO X: play the bundled confirmation sound in place of the old
+    /// "Done — All patch rules were applied" alert.
+    private static func playSuccessAudio(player: inout AVAudioPlayer?) {
+        guard let url = Bundle.main.url(forResource: "applied", withExtension: "m4a") else { return }
+        do {
+            let audio = try AVAudioPlayer(contentsOf: url)
+            audio.prepareToPlay()
+            audio.play()
+            player = audio
+        } catch {
+            // Audio is cosmetic only; never surface an error for it.
+        }
+    }
+
     private func apply() {
         guard let item, let baseProject = item.project else { return }
         isWorking = true
@@ -1252,7 +1269,7 @@ private struct PatchProjectDetailView: View {
                 await MainActor.run {
                     store.reload()
                     isWorking = false
-                    actionAlert = PatchStoreAlert(titleKey: "common.done", messageKey: "patch.applied_message")
+                    Self.playSuccessAudio(player: &successAudioPlayer)
                 }
             } catch let error as PatchPackageError {
                 await MainActor.run {
