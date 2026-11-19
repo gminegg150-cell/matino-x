@@ -38,8 +38,8 @@ private enum InstalledScreenLayout {
     /// Detail screen: Information and Workspace sections.
     static let showsDetailInfo = false
     static let showsDetailWorkspace = false
-    /// Game-variant segmented selector. Hidden = all NORMAL/MAX shown together.
-    static let showsGameVariantSelector = false
+    /// Game-variant segmented selector (FREE FIRE NORMAL / FREE FIRE MAX).
+    static let showsGameVariantSelector = true
     /// Static "SELECT PATCH" label on the right of each patch row.
     static let showsSelectPatchLabel = true
 }
@@ -201,7 +201,24 @@ struct PatchProjectsView: View {
                             .listRowSeparator(.hidden)
                     } else {
                         if !filteredItems.isEmpty {
-                            Section(language.text("patch.title")) {
+                            Section {
+                                // MATINO X: header row with the active variant
+                                // on the left and a static SELECT PATCH label.
+                                if InstalledScreenLayout.showsGameVariantSelector {
+                                    HStack {
+                                        Label(
+                                            gameVariant == 1 ? "FF MAX" : "FF NORMAL",
+                                            systemImage: "bolt.fill"
+                                        )
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundStyle(.primary)
+                                        Spacer()
+                                        Text("SELECT PATCH")
+                                            .font(.system(size: 11, weight: .semibold))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .listRowSeparator(.hidden)
+                                }
                                 // MATINO X: swipe-to-delete is disabled; files
                                 // are managed from the site only.
                                 if InstalledScreenLayout.allowsRowDeletion {
@@ -382,10 +399,10 @@ struct PatchProjectsView: View {
     /// Styled as a segmented control with an outer track, matching the design.
     private var gameVariantSelector: some View {
         HStack(spacing: 0) {
-            variantButton(title: "FREE FIRE NORMAL", value: 0)
-            variantButton(title: "FREE FIRE MAX", value: 1)
+            variantButton(title: "FREE FIRE", subtitle: "NORMAL", value: 0)
+            variantButton(title: "FREE FIRE MAX", subtitle: "MAX", value: 1)
         }
-        .padding(4)
+        .padding(5)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(AppTheme.consoleBackground)
@@ -397,7 +414,7 @@ struct PatchProjectsView: View {
         .padding(.vertical, 4)
     }
 
-    private func variantButton(title: String, value: Int) -> some View {
+    private func variantButton(title: String, subtitle: String, value: Int) -> some View {
         let selected = gameVariant == value
         return Button {
             // MATINO X: keep exactly one variant selected. Tapping twice must
@@ -406,21 +423,26 @@ struct PatchProjectsView: View {
                 gameVariant = value
             }
         } label: {
-            Text(title)
-                .font(.system(size: 14, weight: selected ? .bold : .semibold))
-                .foregroundStyle(selected ? .primary : .secondary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 11)
-                .background(
+            VStack(spacing: 2) {
+                Text(title)
+                    .font(.system(size: 14, weight: .bold))
+                Text(subtitle)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .foregroundStyle(selected ? .primary : .secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 9)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(selected ? Color.white.opacity(0.08) : Color.clear)
+            )
+            .overlay {
+                if selected {
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(selected ? AppTheme.accent.opacity(0.18) : Color.clear)
-                )
-                .overlay {
-                    if selected {
-                        RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(AppTheme.accent.opacity(0.6), lineWidth: 1)
-                    }
+                        .strokeBorder(Color.white.opacity(0.5), lineWidth: 1)
                 }
+            }
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
