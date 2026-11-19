@@ -317,7 +317,7 @@ struct PatchProjectsView: View {
             // need to leave and reopen the app. Conditional ETag requests keep
             // this cheap. Only poll when active.
             .onReceive(
-                Timer.publish(every: 8, on: .main, in: .common).autoconnect()
+                Timer.publish(every: 2, on: .main, in: .common).autoconnect()
             ) { _ in
                 if scenePhase == .active { store.refreshFromRepository() }
             }

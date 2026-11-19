@@ -40,7 +40,7 @@ final class PatchProjectStore: ObservableObject {
 
     /// MATINO X: minimum gap between two repository syncs. Kept short so a
     /// deletion made on the site shows up quickly when returning to the app.
-    private static let repositorySyncInterval: TimeInterval = 5
+    private static let repositorySyncInterval: TimeInterval = 1
     /// Names removed from the repository, so the bundle import does not bring
     /// them back on the next launch.
     private static let remoteRemovedKey = "patch.remote_removed_files"
