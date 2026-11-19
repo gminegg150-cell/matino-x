@@ -663,7 +663,7 @@ private struct PatchProjectRow: View {
                     Text(comment)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                        // MATINO X: show the full description, never truncate it.
                 }
                 if InstalledScreenLayout.showsKindBadge {
                     InstalledContentKindBadge(kind: .patch, language: language)
