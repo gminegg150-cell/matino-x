@@ -37,9 +37,9 @@ struct PatchProjectsView: View {
     @State private var showWallpaperImporter = false
     @State private var showCleaner = false
     @State private var searchText = ""
-    /// MATINO X: read-only game-variant filter shown in the category tabs.
-    /// nil = all, 0 = FREE FIRE (normal), 1 = FREE FIRE MAX.
-    @State private var gameVariant: Int? = nil
+    /// MATINO X: read-only display filter shown in the category tabs.
+    /// 0 = "For You" (curated, non-MAX), 1 = "All Packages" (everything).
+    @State private var gameVariant: Int? = 0
     @State private var wallpaperPackages: [WallpaperStagedPackage] = []
     @State private var wallpaperImportFeedback: WallpaperImportFeedback?
     @State private var wallpaperPendingDeletion: WallpaperStagedPackage?
@@ -349,41 +349,46 @@ struct PatchProjectsView: View {
 
     /// MATINO X: read-only two-option filter (no apply/run). Selecting an
     /// option only narrows which .3105 packages are listed in this tab.
+    /// Styled as a segmented control with an outer track, matching the design.
     private var gameVariantSelector: some View {
-        HStack(spacing: 10) {
-            variantButton(title: "FREE FIRE", subtitle: "NORMAL", value: 0)
-            variantButton(title: "FREE FIRE MAX", subtitle: "MAX", value: 1)
+        HStack(spacing: 0) {
+            variantButton(title: "FREE FIRE NORMAL", value: 0)
+            variantButton(title: "FREE FIRE MAX", value: 1)
+        }
+        .padding(4)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(AppTheme.consoleBackground)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(AppTheme.cardBorder, lineWidth: 1)
         }
         .padding(.vertical, 4)
     }
 
-    private func variantButton(title: String, subtitle: String, value: Int) -> some View {
+    private func variantButton(title: String, value: Int) -> some View {
         let selected = gameVariant == value
         return Button {
             withAnimation(.easeInOut(duration: 0.15)) {
                 gameVariant = selected ? nil : value
             }
         } label: {
-            VStack(spacing: 2) {
-                Text(title)
-                    .font(.system(size: 15, weight: .bold))
-                Text(subtitle)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(selected ? AppTheme.accent.opacity(0.18) : AppTheme.consoleBackground)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(
-                        selected ? AppTheme.accent : AppTheme.cardBorder,
-                        lineWidth: selected ? 2 : 1
-                    )
-            }
+            Text(title)
+                .font(.system(size: 14, weight: selected ? .bold : .semibold))
+                .foregroundStyle(selected ? .primary : .secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 11)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(selected ? AppTheme.accent.opacity(0.18) : Color.clear)
+                )
+                .overlay {
+                    if selected {
+                        RoundedRectangle(cornerRadius: 12)
+                            .strokeBorder(AppTheme.accent.opacity(0.6), lineWidth: 1)
+                    }
+                }
         }
         .buttonStyle(.plain)
         .accessibilityLabel(title)
