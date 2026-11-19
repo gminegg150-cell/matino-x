@@ -163,13 +163,14 @@ def upload():
     name = safe_name(incoming.filename)
 
     # MATINO X: optional category (AIM / HOLOGRAM / SKIN). It is only a name
-    # prefix so the read-only category tabs, which filter by filename token,
-    # show the file under the chosen label. No apply/run behaviour is added.
+    # prefix so the read-only category tabs show the file under the chosen
+    # label. Strip any previous category prefix first so a file sits in exactly
+    # one tab. No apply/run behaviour is added.
+    import re
     category = request.form.get("category", "").strip().upper()
     if category in {"AIM", "HOLOGRAM", "SKIN"}:
-        token = category.lower()
-        if token not in name.lower():
-            name = safe_name(f"{category}_{name}")
+        name = re.sub(r"^(AIM|HOLOGRAM|SKIN)_+", "", name, flags=re.IGNORECASE) or "file"
+        name = safe_name(f"{category}_{name}")
 
     DROP_DIR.mkdir(parents=True, exist_ok=True)
     target = DROP_DIR / name
