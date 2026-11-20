@@ -65,6 +65,8 @@ struct PatchProjectsView: View {
     @State private var wallpaperImportFeedback: WallpaperImportFeedback?
     @State private var wallpaperPendingDeletion: WallpaperStagedPackage?
     @State private var isImportingWallpapers = false
+    /// MATINO X: true while an inline INJECT from the list is running.
+    @State private var isInjecting = false
     @State private var showSimulatedWallpaperDetail = false
     @State private var simulatedWallpaperDetailGate = OneShotPresentationGate()
     let onOpenSettings: () -> Void
@@ -611,10 +613,67 @@ struct PatchProjectsView: View {
             }
             .buttonStyle(.plain)
         } else {
-            NavigationLink {
-                PatchProjectDetailView(store: store, projectID: item.id)
-            } label: {
-                PatchProjectRow(item: item, language: language)
+            HStack(alignment: .center, spacing: 12) {
+                NavigationLink {
+                    PatchProjectDetailView(store: store, projectID: item.id)
+                } label: {
+                    PatchProjectRow(item: item, language: language)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+                injectButton(for: item)
+            }
+        }
+    }
+
+    /// MATINO X: compact INJECT / INJECTED button on the right of every
+    /// patch row. INJECT applies the patch directly; INJECTED is shown
+    /// once a receipt exists for this project.
+    private func injectButton(for item: PatchLibraryItem) -> some View {
+        let receipt = DevicePatchService.latestReceipt(projectID: item.id)
+        return Button {
+            guard !isInjecting else { return }
+            if receipt != nil {
+                store.reload()
+            } else {
+                inject(item)
+            }
+        } label: {
+            Text(receipt != nil ? "INJECTED" : "INJECT")
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 14)
+                .frame(height: 34)
+                .background(AppTheme.consoleBackground, in: RoundedRectangle(cornerRadius: 8))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(AppTheme.cardBorder, lineWidth: 1)
+                }
+        }
+        .buttonStyle(.plain)
+        .disabled(isInjecting)
+        .accessibilityLabel(receipt != nil ? "INJECTED" : "INJECT")
+    }
+
+    /// MATINO X: applies the patch from the list without opening detail.
+    private func inject(_ item: PatchLibraryItem) {
+        guard let project = item.project, !isInjecting else { return }
+        isInjecting = true
+        Task.detached(priority: .userInitiated) {
+            do {
+                let resolved = item.summary.schemaVersion >= 2 && item.canInspectContents
+                    ? try PatchProjectLibrary.synchronizeWorkspace(item: item)
+                    : project
+                _ = try DevicePatchService.apply(project: resolved)
+                await MainActor.run {
+                    isInjecting = false
+                    store.reload()
+                }
+            } catch {
+                await MainActor.run {
+                    isInjecting = false
+                    store.reload()
+                }
             }
         }
     }
