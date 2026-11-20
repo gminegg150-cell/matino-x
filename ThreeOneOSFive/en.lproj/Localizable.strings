@@ -188,7 +188,7 @@
 "patch.password_once_message" = "After a successful unlock, this device remembers the content key—not the password.";
 "patch.password_repo_contact" = "This repository does not share the password. Contact the owner of %@ to get it. After unlocking, this device remembers only the content key—not the password.";
 "patch.unlock" = "Unlock";
-"patch.apply" = "Inject";
+"patch.apply" = "INJECT";
 "patch.restore" = "Restore Originals";
 "patch.reset" = "Reset to Package";
 "patch.apply_footer" = "Apply is locked while this patch is active. Close the target apps before resetting or restoring files.";

@@ -188,7 +188,7 @@
 "patch.password_once_message" = "Sau khi mở khóa thành công, thiết bị này chỉ nhớ khóa nội dung, không lưu mật khẩu.";
 "patch.password_repo_contact" = "Repo này không chia sẻ mật khẩu. Hãy liên hệ chủ repo %@ để lấy mật khẩu. Sau khi mở khóa, thiết bị chỉ nhớ khóa nội dung, không lưu mật khẩu.";
 "patch.unlock" = "Mở khóa";
-"patch.apply" = "Inject";
+"patch.apply" = "INJECT";
 "patch.restore" = "Khôi phục file gốc";
 "patch.reset" = "Đặt lại theo gói";
 "patch.apply_footer" = "Không thể Apply chồng khi patch đang hoạt động. Hãy đóng app/game đích trước khi đặt lại hoặc khôi phục file.";
