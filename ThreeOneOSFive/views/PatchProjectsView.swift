@@ -188,6 +188,12 @@ struct PatchProjectsView: View {
                     Divider()
                 }
                 List {
+                    if categoryFilter != nil {
+                        categoryHeaderCard
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 18, bottom: 2, trailing: 18))
+                    }
                     if InstalledScreenLayout.showsGameVariantSelector && categoryFilter != nil {
                         gameVariantSelector
                             .listRowSeparator(.hidden)
@@ -419,6 +425,55 @@ struct PatchProjectsView: View {
                 .strokeBorder(AppTheme.cardBorder, lineWidth: 1)
         }
         .padding(.vertical, 4)
+    }
+
+    /// MATINO X: category header card shown at the top of the AIM /
+    /// HOLOGRAM / SKIN tabs - icon tile, bold title, subtitle.
+    private var categoryHeaderCard: some View {
+        let title = (categoryTitle ?? "AIM").uppercased()
+        return HStack(spacing: 14) {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color.black)
+                .frame(width: 56, height: 56)
+                .overlay {
+                    Image(systemName: categoryHeaderSymbol)
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundStyle(.white)
+                }
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+                }
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 24, weight: .heavy))
+                    .foregroundStyle(.primary)
+                Text("ONLINE \(title) PATCHES")
+                    .font(.system(size: 13, weight: .semibold))
+                    .tracking(0.5)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(AppTheme.consoleBackground)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var categoryHeaderSymbol: String {
+        switch (categoryFilter ?? "").lowercased() {
+        case "hologram": return "cube.transparent.fill"
+        case "skin": return "tshirt.fill"
+        default: return "scope"
+        }
     }
 
     private func variantButton(title: String, subtitle: String, value: Int) -> some View {
