@@ -615,14 +615,11 @@ struct PatchProjectsView: View {
             }
             .buttonStyle(.plain)
         } else {
+            // MATINO X: detail screen is hidden - the row only hosts the
+            // inline INJECT / INJECTED button, everything else lives here.
             HStack(alignment: .center, spacing: 12) {
-                NavigationLink {
-                    PatchProjectDetailView(store: store, projectID: item.id)
-                } label: {
-                    PatchProjectRow(item: item, language: language)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .buttonStyle(.plain)
+                PatchProjectRow(item: item, language: language)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 injectButton(for: item)
             }
         }
