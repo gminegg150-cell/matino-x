@@ -1058,7 +1058,11 @@ private struct PatchProjectDetailView: View {
                     Button {
                         showApplyConfirmation = true
                     } label: {
-                        actionLabel("patch.apply", systemImage: "checkmark.shield.fill")
+                        if receipt != nil {
+                            actionLabel("INJECTED", systemImage: "arrow.right.circle.fill")
+                        } else {
+                            actionLabel("patch.apply", systemImage: "arrow.right.circle.fill")
+                        }
                     }
                     .disabled(isWorking || receipt != nil)
 
