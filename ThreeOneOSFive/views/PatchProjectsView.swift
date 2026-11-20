@@ -629,14 +629,14 @@ struct PatchProjectsView: View {
     }
 
     /// MATINO X: compact INJECT / INJECTED button on the right of every
-    /// patch row. INJECT applies the patch directly; INJECTED is shown
-    /// once a receipt exists for this project.
+    /// patch row. INJECT applies the patch directly; INJECTED reverts it
+    /// back to the original files once a receipt exists.
     private func injectButton(for item: PatchLibraryItem) -> some View {
         let receipt = DevicePatchService.latestReceipt(projectID: item.id)
         return Button {
             guard !isInjecting else { return }
-            if receipt != nil {
-                store.reload()
+            if let receipt {
+                revert(receipt)
             } else {
                 inject(item)
             }
@@ -691,6 +691,32 @@ struct PatchProjectsView: View {
             player = audio
         } catch {
             // Audio is cosmetic only; never surface an error for it.
+        }
+    }
+
+    /// MATINO X: INJECTED state - restores the original files for this
+    /// receipt so the row falls back to the INJECT state.
+    private func revert(_ receipt: PatchTransactionReceipt) {
+        guard !isInjecting else { return }
+        isInjecting = true
+        Task.detached(priority: .userInitiated) {
+            do {
+                let inspection = try DevicePatchService.inspectRestore(receipt: receipt)
+                try DevicePatchService.restore(
+                    receipt: receipt,
+                    allowChangedTargets: !inspection.changedTargets.isEmpty
+                )
+                await MainActor.run {
+                    isInjecting = false
+                    store.reload()
+                    Self.playInjectSound(named: "restored", player: &injectAudioPlayer)
+                }
+            } catch {
+                await MainActor.run {
+                    isInjecting = false
+                    store.reload()
+                }
+            }
         }
     }
 
