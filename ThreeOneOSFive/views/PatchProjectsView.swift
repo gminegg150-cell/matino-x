@@ -1063,13 +1063,6 @@ private struct PatchProjectDetailView: View {
                     .disabled(isWorking || receipt != nil)
 
                     if receipt != nil {
-                        Button {
-                            showResetConfirmation = true
-                        } label: {
-                            actionLabel("patch.reset", systemImage: "arrow.counterclockwise.circle")
-                        }
-                        .disabled(isWorking)
-
                         Button(role: .destructive) {
                             showRestoreConfirmation = true
                         } label: {
