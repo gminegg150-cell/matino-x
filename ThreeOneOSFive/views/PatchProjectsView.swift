@@ -1351,10 +1351,7 @@ private struct PatchProjectDetailView: View {
                     try DevicePatchService.restore(receipt: receipt)
                     await MainActor.run {
                         isWorking = false
-                        actionAlert = PatchStoreAlert(
-                            titleKey: "common.done",
-                            messageKey: "patch.restored_message"
-                        )
+                        Self.playSuccessAudio(player: &successAudioPlayer)
                     }
                 } else {
                     await MainActor.run {
@@ -1395,7 +1392,7 @@ private struct PatchProjectDetailView: View {
                 )
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = PatchStoreAlert(titleKey: "common.done", messageKey: "patch.restored_message")
+                    Self.playSuccessAudio(player: &successAudioPlayer)
                 }
             } catch let error as PatchPackageError {
                 await MainActor.run {
@@ -1426,10 +1423,7 @@ private struct PatchProjectDetailView: View {
                 )
                 await MainActor.run {
                     isWorking = false
-                    actionAlert = PatchStoreAlert(
-                        titleKey: "common.done",
-                        messageKey: "patch.reset_message"
-                    )
+                    Self.playSuccessAudio(player: &successAudioPlayer)
                 }
             } catch let error as PatchPackageError {
                 await MainActor.run {
