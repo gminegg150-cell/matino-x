@@ -1071,12 +1071,6 @@ private struct PatchProjectDetailView: View {
                         .disabled(isWorking)
                     }
 
-                    if InstalledScreenLayout.showsExportButton {
-                        Button(action: prepareExport) {
-                            actionLabel("patch.export", systemImage: "square.and.arrow.up")
-                        }
-                        .disabled(isWorking)
-                    }
                 } footer: {
                     Text(language.text("patch.apply_footer"))
                 }
