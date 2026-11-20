@@ -1243,10 +1243,10 @@ private struct PatchProjectDetailView: View {
         }
     }
 
-    /// MATINO X: play the bundled confirmation sound in place of the old
-    /// "Done — All patch rules were applied" alert.
-    private static func playSuccessAudio(player: inout AVAudioPlayer?) {
-        guard let url = Bundle.main.url(forResource: "applied", withExtension: "m4a") else { return }
+    /// MATINO X: play the bundled confirmation sound for a finished action
+    /// (in place of the old "Done" alerts).
+    private static func playSound(named name: String, player: inout AVAudioPlayer?) {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "m4a") else { return }
         do {
             let audio = try AVAudioPlayer(contentsOf: url)
             audio.prepareToPlay()
@@ -1269,7 +1269,7 @@ private struct PatchProjectDetailView: View {
                 await MainActor.run {
                     store.reload()
                     isWorking = false
-                    Self.playSuccessAudio(player: &successAudioPlayer)
+                    Self.playSound(named: "applied", player: &successAudioPlayer)
                 }
             } catch let error as PatchPackageError {
                 await MainActor.run {
@@ -1351,7 +1351,7 @@ private struct PatchProjectDetailView: View {
                     try DevicePatchService.restore(receipt: receipt)
                     await MainActor.run {
                         isWorking = false
-                        Self.playSuccessAudio(player: &successAudioPlayer)
+                        Self.playSound(named: "restored", player: &successAudioPlayer)
                     }
                 } else {
                     await MainActor.run {
@@ -1392,7 +1392,7 @@ private struct PatchProjectDetailView: View {
                 )
                 await MainActor.run {
                     isWorking = false
-                    Self.playSuccessAudio(player: &successAudioPlayer)
+                    Self.playSound(named: "restored", player: &successAudioPlayer)
                 }
             } catch let error as PatchPackageError {
                 await MainActor.run {
@@ -1423,7 +1423,7 @@ private struct PatchProjectDetailView: View {
                 )
                 await MainActor.run {
                     isWorking = false
-                    Self.playSuccessAudio(player: &successAudioPlayer)
+                    Self.playSound(named: "applied", player: &successAudioPlayer)
                 }
             } catch let error as PatchPackageError {
                 await MainActor.run {
