@@ -188,7 +188,7 @@
 "patch.password_once_message" = "成功解锁后，此设备只会记住内容密钥，不会保存密码。";
 "patch.password_repo_contact" = "此软件源未共享密码。请联系 %@ 的所有者获取密码。解锁后，此设备只会记住内容密钥，不会保存密码。";
 "patch.unlock" = "解锁";
-"patch.apply" = "应用补丁";
+"patch.apply" = "Inject";
 "patch.restore" = "恢复原始文件";
 "patch.reset" = "重置为软件包状态";
 "patch.apply_footer" = "补丁生效期间不能重复应用。重置或恢复文件前，请先关闭目标应用或游戏。";
