@@ -3,6 +3,7 @@ import SwiftUI
 /// MATINO X: switches that hide non-essential sections in Settings.
 private enum SettingsLayout {
     static let showsFeatures = false
+    static let showsAppHeader = false
     static let showsWallpaperReset = false
     static let showsSocialMedia = false
     static let showsCredits = false
@@ -20,18 +21,20 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section {
-                    HStack(spacing: 14) {
-                        AppLogo()
+                if SettingsLayout.showsAppHeader {
+                    Section {
+                        HStack(spacing: 14) {
+                            AppLogo()
 
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("3105").font(.headline)
-                            Text(language.text("common.version", appVersion))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("MATINO X").font(.headline)
+                                Text(language.text("common.version", appVersion))
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
+                        .padding(.vertical, 4)
                     }
-                    .padding(.vertical, 4)
                 }
 
                 Section(language.text("settings.language")) {
