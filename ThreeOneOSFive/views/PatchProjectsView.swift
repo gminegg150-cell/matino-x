@@ -69,6 +69,8 @@ struct PatchProjectsView: View {
     @State private var isInjecting = false
     /// MATINO X: keeps the confirmation sound alive while it plays.
     @State private var injectAudioPlayer: AVAudioPlayer?
+    /// MATINO X: error surfaced when an inline INJECT/INJECTED fails.
+    @State private var injectFeedback: InjectFeedback?
     @State private var showSimulatedWallpaperDetail = false
     @State private var simulatedWallpaperDetailGate = OneShotPresentationGate()
     let onOpenSettings: () -> Void
@@ -342,6 +344,13 @@ struct PatchProjectsView: View {
                 .ignoresSafeArea()
             }
             .alert(item: $wallpaperImportFeedback) { feedback in
+                Alert(
+                    title: Text(language.text(feedback.titleKey)),
+                    message: Text(feedback.message),
+                    dismissButton: .default(Text(language.text("common.ok")))
+                )
+            }
+            .alert(item: $injectFeedback) { feedback in
                 Alert(
                     title: Text(language.text(feedback.titleKey)),
                     message: Text(feedback.message),
@@ -710,25 +719,49 @@ struct PatchProjectsView: View {
     }
 
     /// MATINO X: applies the patch from the list without opening detail.
+    /// Waits for the launch-time load/repository sync to settle, retries a
+    /// transient failure, and surfaces an error instead of failing silently.
     private func inject(_ item: PatchLibraryItem) {
-        guard let project = item.project, !isInjecting else { return }
+        guard item.project != nil, !isInjecting else { return }
         isInjecting = true
         Task.detached(priority: .userInitiated) {
-            do {
-                let resolved = item.summary.schemaVersion >= 2 && item.canInspectContents
-                    ? try PatchProjectLibrary.synchronizeWorkspace(item: item)
-                    : project
-                _ = try DevicePatchService.apply(project: resolved)
-                await MainActor.run {
-                    isInjecting = false
-                    store.reload()
-                    Self.playInjectSound(named: "applied", player: &injectAudioPlayer)
+            // Launch window: the store is still loading/mirroring the repo,
+            // so containers and the workspace may not be ready yet.
+            var waited = 0
+            while store.isBusy && waited < 100 {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                waited += 1
+            }
+            var lastError: Error?
+            for attempt in 0..<3 {
+                if attempt > 0 {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
                 }
-            } catch {
-                await MainActor.run {
-                    isInjecting = false
-                    store.reload()
+                // Re-read the item: the store may have reloaded it.
+                guard let fresh = store.items.first(where: { $0.id == item.id }),
+                      let project = fresh.project else { break }
+                do {
+                    let resolved = fresh.summary.schemaVersion >= 2 && fresh.canInspectContents
+                        ? try PatchProjectLibrary.synchronizeWorkspace(item: fresh)
+                        : project
+                    _ = try DevicePatchService.apply(project: resolved)
+                    await MainActor.run {
+                        isInjecting = false
+                        store.reload()
+                        Self.playInjectSound(named: "applied", player: &injectAudioPlayer)
+                    }
+                    return
+                } catch {
+                    lastError = error
                 }
+            }
+            await MainActor.run {
+                isInjecting = false
+                store.reload()
+                injectFeedback = InjectFeedback(
+                    titleKey: "common.failed",
+                    message: lastError.map { "\($0)" } ?? "patch.error.apply"
+                )
             }
         }
     }
@@ -747,27 +780,45 @@ struct PatchProjectsView: View {
     }
 
     /// MATINO X: INJECTED state - restores the original files for this
-    /// receipt so the row falls back to the INJECT state.
+    /// receipt so the row falls back to the INJECT state. Waits for the
+    /// launch-time load to settle and retries once, mirroring inject().
     private func revert(_ receipt: PatchTransactionReceipt) {
         guard !isInjecting else { return }
         isInjecting = true
         Task.detached(priority: .userInitiated) {
-            do {
-                let inspection = try DevicePatchService.inspectRestore(receipt: receipt)
-                try DevicePatchService.restore(
-                    receipt: receipt,
-                    allowChangedTargets: !inspection.changedTargets.isEmpty
+            var waited = 0
+            while store.isBusy && waited < 100 {
+                try? await Task.sleep(nanoseconds: 100_000_000)
+                waited += 1
+            }
+            var lastError: Error?
+            for attempt in 0..<3 {
+                if attempt > 0 {
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                }
+                do {
+                    let inspection = try DevicePatchService.inspectRestore(receipt: receipt)
+                    try DevicePatchService.restore(
+                        receipt: receipt,
+                        allowChangedTargets: !inspection.changedTargets.isEmpty
+                    )
+                    await MainActor.run {
+                        isInjecting = false
+                        store.reload()
+                        Self.playInjectSound(named: "restored", player: &injectAudioPlayer)
+                    }
+                    return
+                } catch {
+                    lastError = error
+                }
+            }
+            await MainActor.run {
+                isInjecting = false
+                store.reload()
+                injectFeedback = InjectFeedback(
+                    titleKey: "common.failed",
+                    message: lastError.map { "\($0)" } ?? "patch.error.restore"
                 )
-                await MainActor.run {
-                    isInjecting = false
-                    store.reload()
-                    Self.playInjectSound(named: "restored", player: &injectAudioPlayer)
-                }
-            } catch {
-                await MainActor.run {
-                    isInjecting = false
-                    store.reload()
-                }
             }
         }
     }
@@ -822,6 +873,13 @@ struct PatchProjectsView: View {
 }
 
 private struct WallpaperImportFeedback: Identifiable {
+    let id = UUID()
+    let titleKey: String
+    let message: String
+}
+
+/// MATINO X: alert payload for a failed inline INJECT / INJECTED action.
+private struct InjectFeedback: Identifiable {
     let id = UUID()
     let titleKey: String
     let message: String
