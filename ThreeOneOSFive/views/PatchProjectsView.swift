@@ -1055,22 +1055,18 @@ private struct PatchProjectDetailView: View {
                 }
 
                 Section {
-                    Button {
-                        showApplyConfirmation = true
-                    } label: {
-                        if receipt != nil {
-                            actionLabel("INJECTED", systemImage: "arrow.right.circle.fill")
-                        } else {
-                            actionLabel("patch.apply", systemImage: "arrow.right.circle.fill")
-                        }
-                    }
-                    .disabled(isWorking || receipt != nil)
-
                     if receipt != nil {
                         Button(role: .destructive) {
                             showRestoreConfirmation = true
                         } label: {
-                            actionLabel("patch.restore", systemImage: "arrow.uturn.backward.circle")
+                            actionLabel("INJECTED", systemImage: "arrow.right.circle.fill")
+                        }
+                        .disabled(isWorking)
+                    } else {
+                        Button {
+                            showApplyConfirmation = true
+                        } label: {
+                            actionLabel("patch.apply", systemImage: "arrow.right.circle.fill")
                         }
                         .disabled(isWorking)
                     }
