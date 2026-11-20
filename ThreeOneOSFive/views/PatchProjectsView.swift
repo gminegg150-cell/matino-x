@@ -67,6 +67,8 @@ struct PatchProjectsView: View {
     @State private var isImportingWallpapers = false
     /// MATINO X: true while an inline INJECT from the list is running.
     @State private var isInjecting = false
+    /// MATINO X: keeps the confirmation sound alive while it plays.
+    @State private var injectAudioPlayer: AVAudioPlayer?
     @State private var showSimulatedWallpaperDetail = false
     @State private var simulatedWallpaperDetailGate = OneShotPresentationGate()
     let onOpenSettings: () -> Void
@@ -668,6 +670,7 @@ struct PatchProjectsView: View {
                 await MainActor.run {
                     isInjecting = false
                     store.reload()
+                    Self.playInjectSound(named: "applied", player: &injectAudioPlayer)
                 }
             } catch {
                 await MainActor.run {
@@ -675,6 +678,19 @@ struct PatchProjectsView: View {
                     store.reload()
                 }
             }
+        }
+    }
+
+    /// MATINO X: bundled confirmation sound for a list-level INJECT.
+    private static func playInjectSound(named name: String, player: inout AVAudioPlayer?) {
+        guard let url = Bundle.main.url(forResource: name, withExtension: "m4a") else { return }
+        do {
+            let audio = try AVAudioPlayer(contentsOf: url)
+            audio.prepareToPlay()
+            audio.play()
+            player = audio
+        } catch {
+            // Audio is cosmetic only; never surface an error for it.
         }
     }
 
