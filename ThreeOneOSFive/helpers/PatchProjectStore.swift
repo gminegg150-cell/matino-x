@@ -185,7 +185,12 @@ final class PatchProjectStore: ObservableObject {
         else { return nil }
         if let exact = map[fileName] { return exact }
         let stem = (fileName as NSString).deletingPathExtension
-        return map[stem]
+        if let stemMatch = map[stem] { return stemMatch }
+        // Fallback: the site may have stored the key with a stray suffix
+        // (e.g. "AIM_MAX_DRAG1" instead of "AIM_MAX_DRAG"). Strip trailing
+        // digits and try again so the display name still resolves.
+        let base = stem.replacingOccurrences(of: #"\d+$"#, with: "", options: .regularExpression)
+        return map[base] ?? map[base + ".3105"]
     }
 
     static func comment(for fileName: String) -> String? {
@@ -194,7 +199,11 @@ final class PatchProjectStore: ObservableObject {
         if let exact = map[fileName] { return exact }
         // The site may store the key without the .3105 extension.
         let stem = (fileName as NSString).deletingPathExtension
-        return map[stem]
+        if let stemMatch = map[stem] { return stemMatch }
+        // Fallback: strip a trailing digit suffix from the key so a stale
+        // "AIM_MAX_DRAG1" entry still matches "AIM_MAX_DRAG.3105".
+        let base = stem.replacingOccurrences(of: #"\d+$"#, with: "", options: .regularExpression)
+        return map[base] ?? map[base + ".3105"]
     }
 
     /// Downloads every .3105 currently held in the repository and drops the
