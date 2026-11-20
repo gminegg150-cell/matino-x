@@ -153,7 +153,12 @@ enum PatchProjectLibrary {
             }
         }
         return byID.values.sorted {
-            ($0.project?.updatedAt ?? .distantPast) > ($1.project?.updatedAt ?? .distantPast)
+            let lhsDate = $0.project?.createdAt ?? $0.project?.updatedAt ?? .distantPast
+            let rhsDate = $1.project?.createdAt ?? $1.project?.updatedAt ?? .distantPast
+            if lhsDate != rhsDate { return lhsDate > rhsDate }
+            return $0.packageURL.lastPathComponent.localizedStandardCompare(
+                $1.packageURL.lastPathComponent
+            ) == .orderedAscending
         }
     }
 
