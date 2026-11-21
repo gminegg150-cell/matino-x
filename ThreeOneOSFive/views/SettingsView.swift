@@ -115,36 +115,57 @@ struct SettingsView: View {
                 }
 
                 Section(language.text("common.device")) {
-                    LabeledContent(language.text("dashboard.hardware_model"), value: AppInfo.displayMachineName)
-                    LabeledContent(language.text("settings.ios_version"), value: "\(AppInfo.osVersion) (\(AppInfo.osBuild))")
+                    VStack(alignment: .leading, spacing: 10) {
+                        LabeledContent(language.text("dashboard.hardware_model"), value: AppInfo.displayMachineName)
+                        LabeledContent(language.text("settings.ios_version"), value: "\(AppInfo.osVersion) (\(AppInfo.osBuild))")
+                    }
+                    .padding(14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(AppTheme.consoleBackground)
+                    )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+                    }
                 }
+                .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
 
                 Section {
-                    HStack {
-                        Text(language.text("settings.current_version"))
-                        Spacer()
-                        Text(language.text(appState.isSupported ? "settings.supported" : "settings.unsupported"))
-                        .foregroundStyle(appState.isSupported ? Color.green : Color.red)
-                    }
-                    LabeledContent("iOS 17", value: ExploitSupportPolicy.verifiedIOS17Range)
-                    LabeledContent("iOS 18", value: ExploitSupportPolicy.verifiedIOS18Range)
-                    LabeledContent("iOS 26", value: ExploitSupportPolicy.verifiedIOS26Range)
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("iOS 27.0")
-                            .font(.body)
-                        ForEach(ExploitSupportPolicy.verifiedIOS27Builds, id: \.build) { version in
-                            Text(versionLabel(version))
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Text(language.text("settings.current_version"))
+                            Spacer()
+                            Text(language.text(appState.isSupported ? "settings.supported" : "settings.unsupported"))
+                            .foregroundStyle(appState.isSupported ? Color.green : Color.red)
+                        }
+                        LabeledContent("iOS 17", value: ExploitSupportPolicy.verifiedIOS17Range)
+                        LabeledContent("iOS 18", value: ExploitSupportPolicy.verifiedIOS18Range)
+                        LabeledContent("iOS 26", value: ExploitSupportPolicy.verifiedIOS26Range)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("iOS 27.0")
+                                .font(.body)
+                            ForEach(ExploitSupportPolicy.verifiedIOS27Builds, id: \.build) { version in
+                                Text(versionLabel(version))
+                                .font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
+                            }
                         }
                     }
-                    .padding(.vertical, 2)
+                    .padding(14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(AppTheme.consoleBackground)
+                    )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+                    }
                 } header: {
                     Text(language.text("settings.verified_versions"))
-                } footer: {
-                    Text(language.text("settings.supported_versions_footer"))
                 }
+                .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
 
                 if SettingsLayout.showsSocialMedia {
