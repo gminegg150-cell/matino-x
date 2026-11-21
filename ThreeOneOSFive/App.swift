@@ -275,7 +275,7 @@ struct SplashView: View {
     }
 }
 
-﻿// MATINO X: animated strip shown across all tabs (AIM/HOLOGRAM/SKIN/Settings).
+// MATINO X: animated strip shown across all tabs (AIM/HOLOGRAM/SKIN/Settings).
 struct BannerAnimView: View {
     @State private var player: AVPlayer?
     @Environment(\.scenePhase) private var scenePhase
