@@ -234,7 +234,7 @@ struct SplashView: View {
                     .scaledToFill()
                     .clipped()
                     .blendMode(.screen)
-                    .opacity(0.5)
+                    .opacity(0.3)
                     .onAppear {
                         player.play()
                     }
