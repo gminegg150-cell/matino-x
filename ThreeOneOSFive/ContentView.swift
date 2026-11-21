@@ -164,6 +164,8 @@ struct ContentView: View {
         case .settings:
             // MATINO X: Settings is now a real tab like AIM/HOLOGRAM/SKIN.
             SettingsView()
+        case .more:
+            MoreView()
         case .files:
             AppDataBrowserView(
                 tabSession: filesTabSession,
@@ -260,6 +262,7 @@ private extension AppSection {
         case .hologram: return "tab.hologram"
         case .skin: return "tab.skin"
         case .misc: return "MISC"
+        case .more: return "MORE"
         case .settings: return "settings.title"
         }
     }
@@ -282,6 +285,7 @@ private extension AppSection {
         case .hologram: return "cube.transparent.fill"
         case .skin: return "tshirt.fill"
         case .misc: return "square.grid.2x2.fill"
+        case .more: return "ellipsis.circle.fill"
         case .settings: return "gearshape.fill"
         }
     }

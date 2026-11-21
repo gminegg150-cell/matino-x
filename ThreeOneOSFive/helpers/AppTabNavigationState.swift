@@ -13,6 +13,7 @@ enum AppSection: Int, CaseIterable, Identifiable {
     case hologram
     case skin
     case misc
+    case more
     /// MATINO X: bottom-bar Settings entry. A distinct raw value keeps it out
     /// of the legacy simulator argument indices.
     case settings = 99
@@ -40,6 +41,7 @@ enum AppSection: Int, CaseIterable, Identifiable {
         case .hologram: return "HOLOGRAM"
         case .skin: return "SKIN"
         case .misc: return "MISC"
+        case .more: return "MORE"
         default: return nil
         }
     }
@@ -86,7 +88,7 @@ struct FeatureVisibility: Equatable {
 
     func isVisible(_ section: AppSection) -> Bool {
         switch section {
-        case .aim, .hologram, .skin, .misc:
+        case .aim, .hologram, .skin, .misc, .more:
             return categoryTabsEnabled
         case .settings:
             return true
