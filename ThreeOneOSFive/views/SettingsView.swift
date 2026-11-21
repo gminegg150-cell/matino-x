@@ -52,7 +52,7 @@ struct SettingsView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
                             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                .fill(Color.black.opacity(0.15))
+                                .fill(AppTheme.consoleBackground)
                         )
                         .overlay {
                             RoundedRectangle(cornerRadius: 20, style: .continuous)
@@ -73,6 +73,7 @@ struct SettingsView: View {
                     .pickerStyle(.segmented)
                     .labelsHidden()
                 }
+                .listRowBackground(Color.clear)
 
                 if SettingsLayout.showsFeatures {
                     Section {
@@ -116,6 +117,7 @@ struct SettingsView: View {
                     LabeledContent(language.text("dashboard.hardware_model"), value: AppInfo.displayMachineName)
                     LabeledContent(language.text("settings.ios_version"), value: "\(AppInfo.osVersion) (\(AppInfo.osBuild))")
                 }
+                .listRowBackground(Color.clear)
 
                 Section {
                     HStack {
@@ -142,6 +144,7 @@ struct SettingsView: View {
                 } footer: {
                     Text(language.text("settings.supported_versions_footer"))
                 }
+                .listRowBackground(Color.clear)
 
                 if SettingsLayout.showsSocialMedia {
                     Section(language.text("settings.social_media")) {
