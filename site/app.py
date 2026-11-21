@@ -28,11 +28,11 @@ PUSH_REMOTE = "new"
 
 
 def git_push_command() -> list[str]:
-    """git push to the new account, authenticating with GH_TOKEN when present.
+    """git push with GH_TOKEN auth; works locally and on cloud (Render/Railway).
 
-    The machine's credential helper is bound to the old account, so a plain
-    `git push` gets a 403. An explicit Authorization header keeps the site
-    independent of the desktop credential helper.
+    Uses the 'new' remote when present, otherwise falls back to 'origin'.
+    An explicit Authorization header avoids relying on a desktop credential
+    helper so uploads work on a fresh cloud clone too.
     """
     cmd = ["git"]
     token = os.environ.get("GH_TOKEN", "").strip()
@@ -41,7 +41,12 @@ def git_push_command() -> list[str]:
             f"x-access-token:{token}".encode("utf-8")
         ).decode("ascii")
         cmd += ["-c", f"http.extraheader=AUTHORIZATION: basic {basic}"]
-    cmd += ["push", PUSH_REMOTE, "main:main"]
+    # Pick an available remote: 'new' locally, 'origin' on a cloud clone.
+    remotes = subprocess.run(
+        ["git", "remote"], cwd=REPO, capture_output=True, text=True
+    ).stdout.split()
+    remote = PUSH_REMOTE if PUSH_REMOTE in remotes else ("origin" if "origin" in remotes else PUSH_REMOTE)
+    cmd += ["push", remote, "main:main"]
     return cmd
 
 
@@ -389,4 +394,6 @@ def logout():
 if __name__ == "__main__":
     if not password():
         print("Set SITE_PASSWORD in .env before starting. See .env.example")
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    # Cloud-ready: bind to all interfaces, honor $PORT (Render/Railway/Fly).
+    port = int(os.environ.get("PORT", "5000"))
+    app.run(host="0.0.0.0", port=port, debug=False)
