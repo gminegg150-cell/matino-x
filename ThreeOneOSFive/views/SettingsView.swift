@@ -3,7 +3,7 @@ import SwiftUI
 /// MATINO X: switches that hide non-essential sections in Settings.
 private enum SettingsLayout {
     static let showsFeatures = false
-    static let showsAppHeader = true
+    static let showsAppHeader = false
     static let showsWallpaperReset = false
     static let showsSocialMedia = false
     static let showsCredits = false
@@ -190,6 +190,8 @@ struct SettingsView: View {
             .tint(AppTheme.accent)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
         }
     }
 

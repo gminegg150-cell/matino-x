@@ -101,7 +101,6 @@ struct ThreeOneOSFiveApp: App {
             }
             .onAppear {
                 license.revalidateStoredKey()
-                TapSound.install()
                 if !showOnboarding && license.isActivated {
                     appState.detectSupport()
                     checkForUpdate()
@@ -270,50 +269,3 @@ struct SplashView: View {
 }
 
 // MATINO X: animated strip shown across all tabs (AIM/HOLOGRAM/SKIN/Settings).
-
-// MARK: - MATINO X: global UI tap sound (excludes INJECT / INJECTED)
-final class TapSound: NSObject, UIGestureRecognizerDelegate {
-    static let shared = TapSound()
-    private var player: AVAudioPlayer?
-    private var lastPlay: Date = .distantPast
-
-    @objc func handle(_ gesture: UITapGestureRecognizer) {
-        guard let window = gesture.view else { return }
-        let point = gesture.location(in: window)
-        // Skip taps landing on INJECT / INJECTED (they have their own sound).
-        var view = window.hitTest(point, with: nil)
-        while let current = view {
-            if let label = current.accessibilityLabel,
-               label.contains("INJECT") { return }
-            view = current.superview
-        }
-        // Throttle rapid taps.
-        let now = Date()
-        if now.timeIntervalSince(lastPlay) < 0.08 { return }
-        lastPlay = now
-        guard let url = Bundle.main.url(forResource: "tap", withExtension: "m4a") else { return }
-        do {
-            player = try AVAudioPlayer(contentsOf: url)
-            player?.volume = 0.7
-            player?.prepareToPlay()
-            player?.play()
-        } catch { /* cosmetic only */ }
-    }
-
-    func gestureRecognizer(_ g: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
-        true
-    }
-
-    static func install() {
-        guard let window = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .flatMap({ $0.windows })
-            .first(where: { $0.isKeyWindow }),
-            !(window.gestureRecognizers ?? []).contains(where: { $0 is UITapGestureRecognizer && $0.delegate === shared })
-        else { return }
-        let recognizer = UITapGestureRecognizer(target: shared, action: #selector(TapSound.shared.handle(_:)))
-        recognizer.cancelsTouchesInView = false
-        recognizer.delegate = shared
-        window.addGestureRecognizer(recognizer)
-    }
-}
