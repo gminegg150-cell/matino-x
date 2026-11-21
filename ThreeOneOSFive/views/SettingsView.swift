@@ -188,7 +188,7 @@ struct SettingsView: View {
                 }
             }
             .tint(AppTheme.accent)
-            .navigationTitle(language.text("settings.title"))
+            .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
