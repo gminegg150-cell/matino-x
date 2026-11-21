@@ -1,5 +1,7 @@
 import SwiftUI
 import UIKit
+import AVKit
+import AVFoundation
 
 @main
 struct ThreeOneOSFiveApp: App {
@@ -11,6 +13,7 @@ struct ThreeOneOSFiveApp: App {
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
     @State private var showOnboarding = OnboardingStore.shouldShow()
     @State private var showAttribution = false
+    @State private var showSplash = true
     @State private var updateOffer: AppUpdateChecker.Offer?
     @StateObject private var license = BaypassLicense.shared
     @Environment(\.scenePhase) private var scenePhase
@@ -68,6 +71,12 @@ struct ThreeOneOSFiveApp: App {
                 if !license.isActivated {
                     BaypassActivationView()
                         .zIndex(2)
+                }
+
+                if showSplash {
+                    SplashView()
+                        .zIndex(3)
+                        .allowsHitTesting(false)
                 }
 
 
@@ -213,3 +222,40 @@ class AppState: ObservableObject {
         }
     }
 }
+
+/// MATINO X: launch splash - video at native size (no stretch/crop), screen blend.
+struct SplashView: View {
+    @State private var player: AVPlayer?
+
+    var body: some View {
+        ZStack {
+            Color.clear.ignoresSafeArea()
+            if let player {
+                VideoPlayer(player: player)
+                    .ignoresSafeArea()
+                    .blendMode(.screen)
+                    .opacity(0.6)
+                    .onAppear {
+                        player.play()
+                    }
+            }
+        }
+        .onAppear {
+            if let url = Bundle.main.url(forResource: "snow_overlay", withExtension: "mp4") {
+                let p = AVPlayer(url: url)
+                p.isMuted = true
+                p.actionAtItemEnd = .none
+                self.player = p
+                NotificationCenter.default.addObserver(
+                    forName: .AVPlayerItemDidPlayToEndTime,
+                    object: p.currentItem,
+                    queue: .main
+                ) { _ in
+                    p.seek(to: .zero)
+                    p.play()
+                }
+            }
+        }
+    }
+}
+
