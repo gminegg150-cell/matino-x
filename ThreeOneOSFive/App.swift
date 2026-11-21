@@ -224,7 +224,7 @@ class AppState: ObservableObject {
 }
 
 /// MATINO X: launch splash - video at native size (no stretch/crop), screen blend.
-﻿struct SplashView: View {
+struct SplashView: View {
     @State private var player: AVPlayer?
     @Environment(\.scenePhase) private var scenePhase
 
