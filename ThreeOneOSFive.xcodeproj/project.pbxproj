@@ -79,6 +79,7 @@
 		3105A211 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3105A031; };
 		3105A242 /* applied.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3105A142; };
 		3105A243 /* restored.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3105A143; };
+		3105A244 /* tap.m4a in Resources */ = {isa = PBXBuildFile; fileRef = 3105A144; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -119,6 +120,7 @@
 		3105A107 /* AppIconHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppIconHelper.h; sourceTree = "<group>"; };
 		3105A142 /* applied.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = applied.m4a; sourceTree = "<group>"; };
 		3105A143 /* restored.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = restored.m4a; sourceTree = "<group>"; };
+		3105A144 /* tap.m4a */ = {isa = PBXFileReference; lastKnownFileType = audio.m4a; path = tap.m4a; sourceTree = "<group>"; };
 		3105A202 /* KernelExploit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KernelExploit.swift; sourceTree = "<group>"; };
 		3105J201 /* AntiDetection.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AntiDetection.m; sourceTree = "<group>"; };
 		3105J202 /* DisplayIdentity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DisplayIdentity.h; sourceTree = "<group>"; };
@@ -294,6 +296,7 @@
 				3105A107 /* AppIconHelper.h */,
 				3105A142 /* applied.m4a */,
 				3105A143 /* restored.m4a */,
+				3105A144 /* tap.m4a */,
 				3105A202 /* KernelExploit.swift */,
 				3105J201 /* AntiDetection.m */,
 				3105J202 /* DisplayIdentity.h */,
@@ -386,6 +389,7 @@
 				3105A228,
 				3105A242,
 				3105A243,
+				3105A244,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
