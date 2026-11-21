@@ -286,6 +286,7 @@ struct BannerAnimView: View {
     private let words = ["MATINO X", "ONLINE PATCHES", "FREE FIRE", "AIM • HOLOGRAM • SKIN"]
 
     var body: some View {
+        VStack(spacing: 0) {
         ZStack(alignment: .leading) {
             // Deep bar background
             LinearGradient(
@@ -327,6 +328,8 @@ struct BannerAnimView: View {
             shimmer += 4
             if shimmer > 420 { shimmer = -260 }
             phase += 0.012
+        }
+        Spacer()
         }
     }
 }
