@@ -16,7 +16,6 @@ struct ThreeOneOSFiveApp: App {
     @State private var showOnboarding = OnboardingStore.shouldShow()
     @State private var showAttribution = false
     @State private var showSplash = true
-    @State private var showSplash = true
     @State private var updateOffer: AppUpdateChecker.Offer?
     @StateObject private var license = BaypassLicense.shared
     @Environment(\.scenePhase) private var scenePhase
