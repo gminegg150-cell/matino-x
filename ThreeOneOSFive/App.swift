@@ -233,7 +233,8 @@ struct SplashView: View {
                     .ignoresSafeArea()
                     .scaledToFill()
                     .clipped()
-                    .opacity(0.45)
+                    .blendMode(.screen)
+                    .opacity(0.5)
                     .onAppear {
                         player.play()
                     }
