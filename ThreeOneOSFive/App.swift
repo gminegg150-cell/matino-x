@@ -276,40 +276,57 @@ struct SplashView: View {
 }
 
 // MATINO X: animated strip shown across all tabs (AIM/HOLOGRAM/SKIN/Settings).
+// MATINO X: self-made animated neon strip (pure SwiftUI, no video).
+// Shown across AIM / HOLOGRAM / SKIN / Settings.
 struct BannerAnimView: View {
-    @State private var player: AVPlayer?
-    @Environment(\.scenePhase) private var scenePhase
+    @State private var phase: CGFloat = 0
+    @State private var shimmer: CGFloat = -260
+    private let tick = Timer.publish(every: 0.03, on: .main, in: .common).autoconnect()
+
+    private let words = ["MATINO X", "ONLINE PATCHES", "FREE FIRE", "AIM • HOLOGRAM • SKIN"]
 
     var body: some View {
-        VStack {
-            if let player {
-                VideoPlayer(player: player)
-                    .frame(height: 56)
-                    .clipped()
-                    .onAppear { player.play() }
+        ZStack(alignment: .leading) {
+            // Deep bar background
+            LinearGradient(
+                colors: [Color.black.opacity(0.95), Color(white: 0.07), Color.black.opacity(0.95)],
+                startPoint: .leading, endPoint: .trailing
+            )
+
+            // Moving neon shimmer sweep
+            LinearGradient(
+                colors: [.clear, Color.green.opacity(0.35), .clear],
+                startPoint: .leading, endPoint: .trailing
+            )
+            .frame(width: 220)
+            .offset(x: shimmer)
+
+            // Neon glowing text with pulse
+            HStack(spacing: 10) {
+                Image(systemName: "scope")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(.green)
+                    .shadow(color: .green, radius: 6)
+                Text(words[Int(phase) % words.count])
+                    .font(.system(size: 18, weight: .heavy, design: .monospaced))
+                    .foregroundStyle(.green)
+                    .shadow(color: .green.opacity(0.9), radius: 8)
+                    .animation(.easeInOut(duration: 0.35), value: phase)
+                Spacer()
+                Circle()
+                    .fill(.green)
+                    .frame(width: 6, height: 6)
+                    .shadow(color: .green, radius: 6)
+                    .opacity(0.5 + 0.5 * sin(phase * 2))
             }
-            Spacer()
+            .padding(.horizontal, 16)
         }
-        .onAppear {
-            if player == nil,
-               let url = Bundle.main.url(forResource: "banner_anim", withExtension: "mp4") {
-                let p = AVPlayer(url: url)
-                p.isMuted = true
-                p.actionAtItemEnd = .none
-                self.player = p
-                NotificationCenter.default.addObserver(
-                    forName: .AVPlayerItemDidPlayToEndTime,
-                    object: p.currentItem,
-                    queue: .main
-                ) { _ in
-                    p.seek(to: .zero)
-                    p.play()
-                }
-                p.play()
-            }
-        }
-        .onChange(of: scenePhase) { phase in
-            if phase == .active { player?.play() }
+        .frame(height: 46)
+        .clipped()
+        .onReceive(tick) { _ in
+            shimmer += 4
+            if shimmer > 420 { shimmer = -260 }
+            phase += 0.012
         }
     }
 }
