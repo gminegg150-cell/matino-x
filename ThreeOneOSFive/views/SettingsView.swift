@@ -17,8 +17,6 @@ struct SettingsView: View {
     @AppStorage(FeatureVisibility.cleanerStorageKey) private var cleanerEnabled = true
     @AppStorage(FeatureVisibility.developerModeStorageKey)
     private var developerModeEnabled = false
-    /// MATINO X: subtle continuous float motion for the whole list.
-    @State private var floating = false
 
     var body: some View {
         NavigationStack {
@@ -219,12 +217,6 @@ struct SettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .scrollContentBackground(.hidden)
             .background(Color.clear)
-            .offset(y: floating ? -3 : 3)
-            .animation(
-                Animation.easeInOut(duration: 2.4).repeatForever(autoreverses: true),
-                value: floating
-            )
-            .onAppear { floating = true }
         }
     }
 

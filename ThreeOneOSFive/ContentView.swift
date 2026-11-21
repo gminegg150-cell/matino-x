@@ -14,6 +14,8 @@ struct ContentView: View {
     @State private var tabNavigation: AppTabNavigationState
     @State private var showSettings = false
     @State private var showLogs = false
+    /// MATINO X: subtle continuous float motion across all tabs.
+    @State private var floating = false
 
     init() {
 #if targetEnvironment(simulator)
@@ -51,6 +53,12 @@ struct ContentView: View {
                 compactLayout
             }
         }
+        .offset(y: floating ? -3 : 3)
+        .animation(
+            Animation.easeInOut(duration: 2.4).repeatForever(autoreverses: true),
+            value: floating
+        )
+        .onAppear { floating = true }
         .tint(AppTheme.accent)
         .imageScale(.small)
         .onChange(of: patchDraftCoordinator.request?.id) { requestID in
