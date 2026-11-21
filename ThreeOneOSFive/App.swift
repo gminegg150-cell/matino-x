@@ -224,8 +224,9 @@ class AppState: ObservableObject {
 }
 
 /// MATINO X: launch splash - video at native size (no stretch/crop), screen blend.
-struct SplashView: View {
+﻿struct SplashView: View {
     @State private var player: AVPlayer?
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ZStack {
@@ -241,7 +242,8 @@ struct SplashView: View {
             }
         }
         .onAppear {
-            if let url = Bundle.main.url(forResource: "snow_overlay", withExtension: "mp4") {
+            if player == nil,
+               let url = Bundle.main.url(forResource: "snow_overlay", withExtension: "mp4") {
                 let p = AVPlayer(url: url)
                 p.isMuted = true
                 p.actionAtItemEnd = .none
@@ -254,8 +256,14 @@ struct SplashView: View {
                     p.seek(to: .zero)
                     p.play()
                 }
+                p.play()
+            }
+        }
+        // Resume when returning from background - video must keep playing.
+        .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                player?.play()
             }
         }
     }
 }
-
