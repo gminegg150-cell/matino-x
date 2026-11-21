@@ -232,6 +232,8 @@ struct SplashView: View {
             if let player {
                 VideoPlayer(player: player)
                     .ignoresSafeArea()
+                    .scaledToFill()
+                    .clipped()
                     .opacity(0.45)
                     .onAppear {
                         player.play()
