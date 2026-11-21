@@ -97,12 +97,8 @@ struct ContentView: View {
             List {
                 ForEach(featureVisibility.visibleSections) { section in
                     Button {
-                        if section == .settings {
-                            showSettings = true
-                        } else {
-                            withAnimation(.easeInOut(duration: 0.18)) {
-                                tabNavigation.select(section.rawValue)
-                            }
+                        withAnimation(.easeInOut(duration: 0.18)) {
+                            tabNavigation.select(section.rawValue)
                         }
                     } label: {
                         Label(section.displayTitle(language: language), systemImage: section.systemImage)
@@ -158,14 +154,8 @@ struct ContentView: View {
                 onOpenLogs: openLogs
             )
         case .settings:
-            // MATINO X: the bottom-bar Settings tab opens the sheet. It needs
-            // a real view so TabView does not drop the tab from the bar.
-            PatchProjectsView(
-                categoryFilter: AppSection.aim.packageFilterToken,
-                categoryTitle: AppSection.aim.categoryTabTitle,
-                onOpenSettings: openSettings,
-                onOpenLogs: openLogs
-            )
+            // MATINO X: Settings is now a real tab like AIM/HOLOGRAM/SKIN.
+            SettingsView()
         case .files:
             AppDataBrowserView(
                 tabSession: filesTabSession,
@@ -184,12 +174,8 @@ struct ContentView: View {
         Binding(
             get: { tabNavigation.selectedTab },
             set: { newValue in
-                if newValue == AppSection.settings.rawValue {
-                    // Open Settings and snap back to the previous section.
-                    showSettings = true
-                } else {
-                    tabNavigation.select(newValue)
-                }
+                // MATINO X: Settings is a normal tab now — select it directly.
+                tabNavigation.select(newValue)
             }
         )
     }
