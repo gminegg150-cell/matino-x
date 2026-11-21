@@ -2,6 +2,8 @@ import SwiftUI
 import UIKit
 import AVKit
 import AVFoundation
+import AVKit
+import AVFoundation
 
 @main
 struct ThreeOneOSFiveApp: App {
@@ -13,6 +15,7 @@ struct ThreeOneOSFiveApp: App {
     @AppStorage(AppLanguage.storageKey) private var languageCode = AppLanguage.english.rawValue
     @State private var showOnboarding = OnboardingStore.shouldShow()
     @State private var showAttribution = false
+    @State private var showSplash = true
     @State private var showSplash = true
     @State private var updateOffer: AppUpdateChecker.Offer?
     @StateObject private var license = BaypassLicense.shared
@@ -74,13 +77,9 @@ struct ThreeOneOSFiveApp: App {
                 }
 
                 if showSplash {
-                    SplashView {
-                        withAnimation(.easeOut(duration: 0.3)) {
-                            showSplash = false
-                        }
-                    }
-                    .zIndex(3)
-                    .transition(.opacity)
+                    SplashView()
+                        .zIndex(3)
+                        .allowsHitTesting(false)
                 }
             }
             .preferredColorScheme(.dark)
@@ -226,15 +225,15 @@ class AppState: ObservableObject {
 
 /// MATINO X: launch splash that plays the bundled snow overlay video once.
 struct SplashView: View {
-    let onFinish: () -> Void
     @State private var player: AVPlayer?
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            Color.clear.ignoresSafeArea()
             if let player {
                 VideoPlayer(player: player)
                     .ignoresSafeArea()
+                    .opacity(0.45)
                     .onAppear {
                         player.play()
                     }
@@ -245,17 +244,16 @@ struct SplashView: View {
                 let p = AVPlayer(url: url)
                 p.isMuted = true
                 self.player = p
+                p.actionAtItemEnd = .none
                 NotificationCenter.default.addObserver(
                     forName: .AVPlayerItemDidPlayToEndTime,
                     object: p.currentItem,
                     queue: .main
                 ) { _ in
-                    onFinish()
+                    p.seek(to: .zero)
+                    p.play()
                 }
-            } else {
-                onFinish()
             }
         }
-        .onTapGesture { onFinish() }
     }
 }
