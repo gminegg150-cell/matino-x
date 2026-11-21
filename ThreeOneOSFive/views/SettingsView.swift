@@ -3,7 +3,7 @@ import SwiftUI
 /// MATINO X: switches that hide non-essential sections in Settings.
 private enum SettingsLayout {
     static let showsFeatures = false
-    static let showsAppHeader = false
+    static let showsAppHeader = true
     static let showsWallpaperReset = false
     static let showsSocialMedia = false
     static let showsCredits = false
@@ -52,13 +52,14 @@ struct SettingsView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
                             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                .fill(AppTheme.consoleBackground)
+                                .fill(Color.black.opacity(0.15))
                         )
                         .overlay {
                             RoundedRectangle(cornerRadius: 20, style: .continuous)
                                 .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
                         }
                         .padding(.vertical, 4)
+                        .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: 6, leading: 18, bottom: 2, trailing: 18))
                     }
                 }
