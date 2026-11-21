@@ -286,7 +286,7 @@ struct PatchProjectsView: View {
                 }
                 .listStyle(.plain)
             }
-            .navigationTitle(categoryTitle ?? language.text("tab.installed"))
+            .navigationTitle(categoryFilter == nil ? language.text("tab.installed") : "")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showImporter) {
                 FileDocumentPicker(
