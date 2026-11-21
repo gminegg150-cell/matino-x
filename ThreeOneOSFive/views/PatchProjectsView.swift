@@ -190,6 +190,12 @@ struct PatchProjectsView: View {
                     Divider()
                 }
                 List {
+                    if categoryFilter != nil {
+                        categoryHeaderCard
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 18, bottom: 2, trailing: 18))
+                    }
                     if InstalledScreenLayout.showsGameVariantSelector && categoryFilter != nil {
                         gameVariantSelector
                             .listRowSeparator(.hidden)
