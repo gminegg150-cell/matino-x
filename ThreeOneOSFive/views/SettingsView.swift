@@ -65,7 +65,7 @@ struct SettingsView: View {
                     }
                 }
 
-                Section(language.text("settings.language")) {
+                Section {
                     Picker(language.text("settings.language"), selection: $languageCode) {
                         ForEach(AppLanguage.allCases) { option in
                             Text(option.displayName).tag(option.rawValue)
@@ -114,7 +114,7 @@ struct SettingsView: View {
                     }
                 }
 
-                Section(language.text("common.device")) {
+                Section {
                     VStack(alignment: .leading, spacing: 10) {
                         LabeledContent(language.text("dashboard.hardware_model"), value: AppInfo.displayMachineName)
                         LabeledContent(language.text("settings.ios_version"), value: "\(AppInfo.osVersion) (\(AppInfo.osBuild))")
@@ -162,8 +162,6 @@ struct SettingsView: View {
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
                     }
-                } header: {
-                    Text(language.text("settings.verified_versions"))
                 }
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
