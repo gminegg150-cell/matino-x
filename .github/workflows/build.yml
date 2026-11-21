@@ -65,10 +65,17 @@ jobs:
           echo "Executable size: $EXEC_BYTES bytes"
           echo "Verified: .lproj folders removed and 400 MiB padding applied."
 
-          # 3. MATINO X: do NOT copy BundledFiles/ into the app bundle. The
-          #    IPA stays clean and the app mirrors everything from the GitHub
-          #    repository at runtime, so adding/removing a file on the site
-          #    needs no rebuild and no reinstall.
+          # 3. MATINO X: copy launch-time assets (.mp4) from BundledFiles/
+          #    into the app bundle so the splash video is always available
+          #    offline. .3105 patches are NOT copied here — they are mirrored
+          #    from the GitHub repository at runtime.
+          if [ -d "$PWD/BundledFiles" ]; then
+            find "$PWD/BundledFiles" -type f -name '*.mp4' -print0 |               while IFS= read -r -d '' file; do
+                name="$(basename "$file")"
+                cp "$file" "$APP/$name"
+                echo "Bundled asset: $name"
+              done
+          fi
 
       - name: Package unsigned IPA
         run: |
