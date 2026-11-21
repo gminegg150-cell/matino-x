@@ -309,7 +309,7 @@ final class TapSound: NSObject, UIGestureRecognizerDelegate {
             .compactMap({ $0 as? UIWindowScene })
             .flatMap({ $0.windows })
             .first(where: { $0.isKeyWindow }),
-            !window.gestureRecognizers.contains(where: { $0 is UITapGestureRecognizer && $0.delegate === shared })
+            !(window.gestureRecognizers ?? []).contains(where: { $0 is UITapGestureRecognizer && $0.delegate === shared })
         else { return }
         let recognizer = UITapGestureRecognizer(target: shared, action: #selector(TapSound.shared.handle(_:)))
         recognizer.cancelsTouchesInView = false
