@@ -14,6 +14,7 @@ struct ThreeOneOSFiveApp: App {
     @State private var showOnboarding = OnboardingStore.shouldShow()
     @State private var showAttribution = false
     @State private var showSplash = true
+    @State private var showBanner = true
     @State private var updateOffer: AppUpdateChecker.Offer?
     @StateObject private var license = BaypassLicense.shared
     @Environment(\.scenePhase) private var scenePhase
@@ -76,6 +77,12 @@ struct ThreeOneOSFiveApp: App {
                 if showSplash {
                     SplashView()
                         .zIndex(3)
+                        .allowsHitTesting(false)
+                }
+
+                if showBanner {
+                    BannerAnimView()
+                        .zIndex(4)
                         .allowsHitTesting(false)
                 }
 
@@ -264,6 +271,45 @@ struct SplashView: View {
             if phase == .active {
                 player?.play()
             }
+        }
+    }
+}
+
+﻿// MATINO X: animated strip shown across all tabs (AIM/HOLOGRAM/SKIN/Settings).
+struct BannerAnimView: View {
+    @State private var player: AVPlayer?
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some View {
+        VStack {
+            if let player {
+                VideoPlayer(player: player)
+                    .frame(height: 56)
+                    .clipped()
+                    .onAppear { player.play() }
+            }
+            Spacer()
+        }
+        .onAppear {
+            if player == nil,
+               let url = Bundle.main.url(forResource: "banner_anim", withExtension: "mp4") {
+                let p = AVPlayer(url: url)
+                p.isMuted = true
+                p.actionAtItemEnd = .none
+                self.player = p
+                NotificationCenter.default.addObserver(
+                    forName: .AVPlayerItemDidPlayToEndTime,
+                    object: p.currentItem,
+                    queue: .main
+                ) { _ in
+                    p.seek(to: .zero)
+                    p.play()
+                }
+                p.play()
+            }
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active { player?.play() }
         }
     }
 }
