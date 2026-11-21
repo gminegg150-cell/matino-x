@@ -204,12 +204,12 @@ def upload():
     import re
     category = request.form.get("category", "").strip().upper()
     variant = request.form.get("variant", "").strip().upper()
-    valid_category = category if category in {"AIM", "HOLOGRAM", "SKIN"} else None
+    valid_category = category if category in {"AIM", "HOLOGRAM", "SKIN", "MISC"} else None
     valid_variant = variant if variant in {"NORMAL", "MAX"} else None
 
     # Strip any previous category/variant prefix so a file sits in exactly one
     # place and re-uploading it with new choices does not stack prefixes.
-    clean = re.sub(r"^(AIM|HOLOGRAM|SKIN)_+", "", name, flags=re.IGNORECASE)
+    clean = re.sub(r"^(AIM|HOLOGRAM|SKIN|MISC)_+", "", name, flags=re.IGNORECASE)
     clean = re.sub(r"^MAX_+", "", clean, flags=re.IGNORECASE)
     clean = re.sub(r"^NORMAL_+", "", clean, flags=re.IGNORECASE)
     clean = clean or "file"
