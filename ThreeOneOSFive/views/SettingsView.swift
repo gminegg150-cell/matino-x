@@ -3,7 +3,7 @@ import SwiftUI
 /// MATINO X: switches that hide non-essential sections in Settings.
 private enum SettingsLayout {
     static let showsFeatures = false
-    static let showsAppHeader = false
+    static let showsAppHeader = true
     static let showsWallpaperReset = false
     static let showsSocialMedia = false
     static let showsCredits = false
@@ -24,16 +24,42 @@ struct SettingsView: View {
                 if SettingsLayout.showsAppHeader {
                     Section {
                         HStack(spacing: 14) {
-                            AppLogo()
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(Color.black)
+                                .frame(width: 56, height: 56)
+                                .overlay {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.system(size: 24, weight: .medium))
+                                        .foregroundStyle(.white)
+                                }
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+                                }
 
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text("MATINO X").font(.headline)
-                                Text(language.text("common.version", appVersion))
-                                    .font(.subheadline)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("SETTINGS")
+                                    .font(.system(size: 24, weight: .heavy))
+                                    .foregroundStyle(.primary)
+                                Text("APP CONFIGURATION")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .tracking(0.5)
                                     .foregroundStyle(.secondary)
                             }
+                            Spacer(minLength: 0)
+                        }
+                        .padding(16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(AppTheme.consoleBackground)
+                        )
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
                         }
                         .padding(.vertical, 4)
+                        .listRowInsets(EdgeInsets(top: 6, leading: 18, bottom: 2, trailing: 18))
                     }
                 }
 
@@ -164,12 +190,6 @@ struct SettingsView: View {
             .tint(AppTheme.accent)
             .navigationTitle(language.text("settings.title"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(language.text("common.done")) { dismiss() }
-                        .fontWeight(.semibold)
-                }
-            }
         }
     }
 

@@ -144,7 +144,7 @@ struct ContentView: View {
                 onOpenSettings: openSettings,
                 onOpenLogs: openLogs
             )
-        case .installed, .aim, .hologram, .skin:
+        case .installed, .aim, .hologram, .skin, .misc:
             // MATINO X: the three category tabs reuse Installed as a filtered,
             // read-only list (no apply/run control is added).
             PatchProjectsView(
@@ -251,6 +251,7 @@ private extension AppSection {
         case .aim: return "tab.aim"
         case .hologram: return "tab.hologram"
         case .skin: return "tab.skin"
+        case .misc: return "MISC"
         case .settings: return "settings.title"
         }
     }
@@ -272,6 +273,7 @@ private extension AppSection {
         case .aim: return "scope"
         case .hologram: return "cube.transparent.fill"
         case .skin: return "tshirt.fill"
+        case .misc: return "square.grid.2x2.fill"
         case .settings: return "gearshape.fill"
         }
     }
