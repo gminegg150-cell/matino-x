@@ -317,7 +317,7 @@ struct BannerAnimView: View {
                     .fill(.green)
                     .frame(width: 6, height: 6)
                     .shadow(color: .green, radius: 6)
-                    .opacity(0.5 + 0.5 * sin(phase * 2))
+                    .opacity(0.5 + 0.5 * sin(Double(phase) * 2.0))
             }
             .padding(.horizontal, 16)
         }
