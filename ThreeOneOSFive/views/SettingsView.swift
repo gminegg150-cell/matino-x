@@ -20,7 +20,7 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
+            List {
                 if SettingsLayout.showsAppHeader {
                     Section {
                         HStack(spacing: 14) {
@@ -59,6 +59,7 @@ struct SettingsView: View {
                                 .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
                         }
                         .padding(.vertical, 4)
+                        .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets(top: 6, leading: 18, bottom: 2, trailing: 18))
                     }
@@ -191,6 +192,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            .listStyle(.plain)
             .tint(AppTheme.accent)
             .navigationTitle("")
             .navigationBarTitleDisplayMode(.inline)
